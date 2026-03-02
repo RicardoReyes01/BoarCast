@@ -22,7 +22,7 @@ export default function HomeScreen() {
       time: '6:00 PM',
       location: 'Student Center 301',
       attendees: 45,
-      color: '#FF6B6B',
+      color: '#0000FF',
       category: 'Academic',
     },
     {
@@ -33,7 +33,7 @@ export default function HomeScreen() {
       time: '8:00 PM',
       location: 'Campus Quad',
       attendees: 120,
-      color: '#4ECDC4',
+      color: '#FFD700',
       category: 'Social',
     },
   ];

@@ -3,12 +3,14 @@ import { NavigationContainer } from '@react-navigation/native';
 import { Text, View, StyleSheet } from 'react-native';
 
 import HomeScreen from '../screens/HomeScreen';
+import MapScreen from '../screens/MapScreen';
+
 const Tab = createBottomTabNavigator();
 
-function MapScreen() {
+function CalendarScreen() {
   return (
     <View style={styles.placeholderContainer}>
-      <Text style={styles.placeholderText}>Map Screen</Text>
+      <Text style={styles.placeholderText}>Calendar Screen</Text>
     </View>
   );
 }
@@ -64,6 +66,15 @@ export default function AppNavigator() {
             ),
           }}
         />
+        <Tab.Screen 
+          name="Calendar" 
+          component={CalendarScreen}
+          options={{
+            tabBarIcon: ({ focused }) => (
+              <Text style={{ fontSize: focused ? 26 : 24 }}>👤</Text>
+            ),
+          }}
+        />
       </Tab.Navigator>
     </NavigationContainer>
   );
@@ -78,7 +89,7 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '1500',
     color: '#1A1A1A',
   },
 });
