@@ -1,7 +1,7 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { Text, View, StyleSheet } from 'react-native';
-
+import { FontAwesome } from '@expo/vector-icons';
 import HomeScreen from '../screens/HomeScreen';
 import MapScreen from '../screens/MapScreen';
 
@@ -44,7 +44,11 @@ export default function AppNavigator() {
           component={HomeScreen}
           options={{
             tabBarIcon: ({ focused }) => (
-              <Text style={{ fontSize: focused ? 26 : 24 }}>🏠</Text>
+              <FontAwesome
+                name="home"
+                size={focused ? 26 : 24}
+                color={color}
+              />
             ),
           }}
         />
