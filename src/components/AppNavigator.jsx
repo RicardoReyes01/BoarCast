@@ -1,9 +1,11 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { Text, View, StyleSheet } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome6 } from '@expo/vector-icons';
+import { FontAwesome } from '@expo/vector-icons'
 import HomeScreen from '../screens/HomeScreen';
 import MapScreen from '../screens/MapScreen';
+import AccountScreen from '../screens/AccountScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -11,14 +13,6 @@ function CalendarScreen() {
   return (
     <View style={styles.placeholderContainer}>
       <Text style={styles.placeholderText}>Calendar Screen</Text>
-    </View>
-  );
-}
-
-function AccountScreen() {
-  return (
-    <View style={styles.placeholderContainer}>
-      <Text style={styles.placeholderText}>Account Screen</Text>
     </View>
   );
 }
@@ -47,7 +41,7 @@ export default function AppNavigator() {
               <FontAwesome
                 name="home"
                 size={focused ? 26 : 24}
-                color={color}
+                color={focused ? '#1A1A1A' : '#999'}
               />
             ),
           }}
@@ -57,16 +51,11 @@ export default function AppNavigator() {
           component={MapScreen}
           options={{
             tabBarIcon: ({ focused }) => (
-              <Text style={{ fontSize: focused ? 26 : 24 }}>🗺️</Text>
-            ),
-          }}
-        />
-        <Tab.Screen 
-          name="Account" 
-          component={AccountScreen}
-          options={{
-            tabBarIcon: ({ focused }) => (
-              <Text style={{ fontSize: focused ? 26 : 24 }}>👤</Text>
+              <FontAwesome6
+                name="map"
+                size={focused ? 26 : 24}
+                color={focused ? '#1A1A1A' : '#999'}
+              />
             ),
           }}
         />
@@ -75,7 +64,23 @@ export default function AppNavigator() {
           component={CalendarScreen}
           options={{
             tabBarIcon: ({ focused }) => (
-              <Text style={{ fontSize: focused ? 26 : 24 }}>👤</Text>
+              <FontAwesome6
+                name="calendar-days"
+                size={focused ? 26 : 24}
+                color={focused ? '#1A1A1A' : '#999'}
+              />             ),
+          }}
+        />
+        <Tab.Screen 
+          name="Account" 
+          component={AccountScreen}
+          options={{
+            tabBarIcon: ({ focused }) => (
+              <FontAwesome6
+                name="circle-user"
+                size={focused ? 26 : 24}
+                color={focused ? '#1A1A1A' : '#999'}
+              />            
             ),
           }}
         />

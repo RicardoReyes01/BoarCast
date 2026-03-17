@@ -8,6 +8,7 @@ import {
   TextInput,
   StatusBar,
 } from 'react-native';
+import { FontAwesome6 } from '@expo/vector-icons';
 
 export default function HomeScreen() {
   const [activeFilter, setActiveFilter] = useState('All');
@@ -33,7 +34,7 @@ export default function HomeScreen() {
       time: '8:00 PM',
       location: 'Campus Quad',
       attendees: 120,
-      color: '#FFD700',
+      color: '#FFB81C',
       category: 'Social',
     },
   ];
@@ -52,17 +53,17 @@ export default function HomeScreen() {
         </View>
         <TouchableOpacity style={styles.profileButton}>
           <View style={styles.profileCircle}>
-            <Text style={styles.profileInitials}>RR</Text>
+            <Text style={styles.profileInitials}>JD</Text>
           </View>
         </TouchableOpacity>
       </View>
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <Text style={styles.searchIcon}>🔍</Text>
+        <FontAwesome6 name="magnifying-glass" size={14} color="#000000" />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search events, organizations..."
+          placeholder=" Search events, organizations..."
           placeholderTextColor="#999"
         />
       </View>
@@ -103,19 +104,19 @@ export default function HomeScreen() {
 
               <View style={styles.eventDetails}>
                 <View style={styles.eventDetail}>
-                  <Text style={styles.eventDetailIcon}>⏰</Text>
-                  <Text style={styles.eventDetailText}>{event.time}</Text>
+                  <FontAwesome6 name="clock" size={14} color="#000000" />
+                  <Text style={styles.eventDetailText}> {event.time}</Text>
                 </View>
                 <View style={styles.eventDetail}>
-                  <Text style={styles.eventDetailIcon}>📍</Text>
-                  <Text style={styles.eventDetailText}>{event.location}</Text>
+                  <FontAwesome6 name="location-dot" size={14} color="#000000" />
+                  <Text style={styles.eventDetailText}> {event.location}</Text>
                 </View>
               </View>
 
               <View style={styles.eventFooter}>
                 <View style={styles.attendeesInfo}>
-                  <Text style={styles.attendeesIcon}>👥</Text>
-                  <Text style={styles.attendeesText}>{event.attendees} going</Text>
+                  <FontAwesome6 name="people-group" size={14} color="#000000" />
+                  <Text style={styles.attendeesText}> {event.attendees} going</Text>
                 </View>
                 <TouchableOpacity style={styles.rsvpButton}>
                   <Text style={styles.rsvpButtonText}>RSVP</Text>
@@ -163,7 +164,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#FF6B6B',
+    backgroundColor: '#1A1A1A',
     justifyContent: 'center',
     alignItems: 'center',
   },
