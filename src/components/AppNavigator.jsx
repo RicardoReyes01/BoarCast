@@ -6,16 +6,9 @@ import { FontAwesome } from '@expo/vector-icons'
 import HomeScreen from '../screens/HomeScreen';
 import MapScreen from '../screens/MapScreen';
 import AccountScreen from '../screens/AccountScreen';
+import CalendarScreen from '../screens/CalendarScreen';
 
 const Tab = createBottomTabNavigator();
-
-function CalendarScreen() {
-  return (
-    <View style={styles.placeholderContainer}>
-      <Text style={styles.placeholderText}>Calendar Screen</Text>
-    </View>
-  );
-}
 
 export default function AppNavigator() {
   return (
