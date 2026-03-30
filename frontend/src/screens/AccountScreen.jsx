@@ -19,7 +19,7 @@ const TAMUK_BLUE = '#003087';
 const TAMUK_GOLD = '#FFB81C';
 
 // Replace with your actual server IP
-const SERVER_URL = 'http://172.20.10.2:5000';
+const SERVER_URL = '10.138.48.38';
 
 const interestTags = [
   { label: 'Greek Life', bg: '#F4C0D1', color: '#72243E' },
