@@ -4,7 +4,9 @@ const admin = require("firebase-admin");
 
 // Your service account key is a JSON file that acts as your credentials
 // It proves to Google that this server is allowed to access your Firebase project
-const serviceAccount = require("./serviceAccountKey.json");
+const serviceAccount = process.env.SERVICE_ACCOUNT_KEY 
+  ? JSON.parse(process.env.SERVICE_ACCOUNT_KEY)
+  : require("./serviceAccountKey.json");
 
 // initializeApp boots up the Firebase connection using those credentials
 // This only needs to happen once when the server starts
