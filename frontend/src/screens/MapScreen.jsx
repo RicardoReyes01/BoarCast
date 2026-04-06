@@ -1,7 +1,4 @@
-// React hooks for state + lifecycle
 import React, { useEffect, useState } from 'react';
-
-// React Native UI components
 import {
   View,
   StyleSheet,
@@ -11,74 +8,42 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-
-// Map components
 import MapView, { Marker } from 'react-native-maps';
-
-// Local phone storage so pins stay saved
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Key name used to save/load pins from storage
+// Key used to save pins on the phone
 const STORAGE_KEY = 'boarcast_pins';
 
-/*
-  Main Map Screen
-  This screen lets users:
-  - tap the map to create a pin
-  - name the pin
-  - edit pins
-  - delete pins
-  - save pins locally
-*/
 export default function MapScreen() {
-  /*
-    pins = array of all saved map pins
-    Example:
-    [
-      {
-        id: "123",
-        coordinate: { latitude: 27.5, longitude: -97.8 },
-        title: "Danger Area"
-      }
-    ]
-  */
+  // All saved pins
   const [pins, setPins] = useState([]);
 
-  // Stores the map coordinates when user taps
+  // Coordinates where user tapped
   const [selectedCoord, setSelectedCoord] = useState(null);
 
-  // Stores the text typed into the pin name input
+  // Name typed by user
   const [pinName, setPinName] = useState('');
 
-  // Controls whether the naming popup is open
+  // Shows or hides the popup
   const [modalVisible, setModalVisible] = useState(false);
 
-  // If editing an existing pin, this stores that pin's ID
+  // If editing a pin, store its id
   const [editingPinId, setEditingPinId] = useState(null);
 
-  /*
-    Runs once when the screen loads
-    Loads previously saved pins from phone storage
-  */
+  // Load pins when screen starts
   useEffect(() => {
     loadPins();
   }, []);
 
-  /*
-    Runs every time pins change
-    Automatically saves the updated pin list
-  */
+  // Save pins whenever they change
   useEffect(() => {
     savePins();
   }, [pins]);
 
-  /*
-    Load saved pins from AsyncStorage
-  */
+  // Get pins from local storage
   const loadPins = async () => {
     try {
       const savedPins = await AsyncStorage.getItem(STORAGE_KEY);
-
       if (savedPins) {
         setPins(JSON.parse(savedPins));
       }
@@ -87,10 +52,7 @@ export default function MapScreen() {
     }
   };
 
-  /*
-    Save current pins to AsyncStorage
-    JSON.stringify turns the array into text for storage
-  */
+  // Save pins to local storage
   const savePins = async () => {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(pins));
@@ -99,11 +61,7 @@ export default function MapScreen() {
     }
   };
 
-  /*
-    Runs when user taps on the map
-    - gets tapped coordinates
-    - opens the naming popup
-  */
+  // When user taps the map
   const handleMapPress = (event) => {
     const coordinate = event.nativeEvent.coordinate;
 
@@ -113,10 +71,7 @@ export default function MapScreen() {
     setModalVisible(true);
   };
 
-  /*
-    Closes the naming/edit popup
-    Also clears temporary state
-  */
+  // Close popup and clear temp values
   const closeModal = () => {
     setModalVisible(false);
     setSelectedCoord(null);
@@ -124,27 +79,21 @@ export default function MapScreen() {
     setEditingPinId(null);
   };
 
-  /*
-    Save a pin
-    If editingPinId exists:
-      -> update existing pin
-    Otherwise:
-      -> create a brand new pin
-  */
+  // Save new pin or update old pin
   const savePin = () => {
     if (!selectedCoord) return;
 
     const trimmedName = pinName.trim() || 'Unnamed Pin';
 
-    // Editing an existing pin
     if (editingPinId) {
+      // Update old pin
       setPins((prevPins) =>
         prevPins.map((pin) =>
           pin.id === editingPinId ? { ...pin, title: trimmedName } : pin
         )
       );
     } else {
-      // Creating a brand new pin
+      // Add new pin
       const newPin = {
         id: Date.now().toString(),
         coordinate: selectedCoord,
@@ -157,9 +106,7 @@ export default function MapScreen() {
     closeModal();
   };
 
-  /*
-    Opens modal to edit an existing pin
-  */
+  // Open popup to edit a pin
   const editPin = (pin) => {
     setSelectedCoord(pin.coordinate);
     setPinName(pin.title);
@@ -167,9 +114,7 @@ export default function MapScreen() {
     setModalVisible(true);
   };
 
-  /*
-    Deletes a pin after confirmation popup
-  */
+  // Delete a pin
   const deletePin = (pinId) => {
     Alert.alert('Delete Pin', 'Are you sure you want to delete this pin?', [
       { text: 'Cancel', style: 'cancel' },
@@ -185,7 +130,7 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
-      {/* MAIN MAP */}
+      {/* Main map */}
       <MapView
         style={styles.map}
         initialRegion={{
@@ -196,31 +141,29 @@ export default function MapScreen() {
         }}
         onPress={handleMapPress}
       >
-        {/* Draw every saved pin as a marker */}
+        {/* Show every saved pin */}
         {pins.map((pin) => (
           <Marker
             key={pin.id}
             coordinate={pin.coordinate}
             title={pin.title}
-            description="Tap this marker to edit"
-            onCalloutPress={() => editPin(pin)}
+            description="Tap the label, then use edit below if needed"
           />
         ))}
       </MapView>
 
-      {/* Small help box at the top */}
-      <View style={styles.helpBox}>
+      {/* Top helper text */}
+      <View style={styles.helpBox} pointerEvents="box-none">
         <Text style={styles.helpText}>Tap anywhere on the map to add a pin.</Text>
       </View>
 
-      {/* Recent pins shown at bottom */}
-      <View style={styles.pinListOverlay}>
+      {/* Bottom list of recent pins */}
+      <View style={styles.pinListOverlay} pointerEvents="box-none">
         {pins.slice(-3).map((pin) => (
           <View key={pin.id} style={styles.pinCard}>
             <Text style={styles.pinTitle}>{pin.title}</Text>
 
             <View style={styles.pinActions}>
-              {/* Edit button */}
               <TouchableOpacity
                 style={styles.editButton}
                 onPress={() => editPin(pin)}
@@ -228,7 +171,6 @@ export default function MapScreen() {
                 <Text style={styles.buttonText}>Edit</Text>
               </TouchableOpacity>
 
-              {/* Delete button */}
               <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={() => deletePin(pin.id)}
@@ -240,7 +182,7 @@ export default function MapScreen() {
         ))}
       </View>
 
-      {/* Popup modal for naming/editing a pin */}
+      {/* Popup for naming or editing a pin */}
       <Modal
         visible={modalVisible}
         transparent
@@ -253,7 +195,6 @@ export default function MapScreen() {
               {editingPinId ? 'Edit Pin' : 'Name This Pin'}
             </Text>
 
-            {/* Input field for pin name */}
             <TextInput
               style={styles.input}
               placeholder="Enter pin name"
@@ -262,12 +203,10 @@ export default function MapScreen() {
             />
 
             <View style={styles.buttonRow}>
-              {/* Cancel button */}
               <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
                 <Text style={styles.buttonText}>Cancel</Text>
               </TouchableOpacity>
 
-              {/* Save / Update button */}
               <TouchableOpacity style={styles.saveButton} onPress={savePin}>
                 <Text style={styles.buttonText}>
                   {editingPinId ? 'Update' : 'Save'}
@@ -281,9 +220,6 @@ export default function MapScreen() {
   );
 }
 
-/*
-  Styling for the map screen UI
-*/
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -291,6 +227,7 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
   },
+
   helpBox: {
     position: 'absolute',
     top: 50,
@@ -304,6 +241,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '600',
   },
+
   pinListOverlay: {
     position: 'absolute',
     bottom: 20,
@@ -337,6 +275,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 8,
   },
+
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
@@ -384,5 +323,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontWeight: '700',
+    textAlign: 'center',
   },
 });
