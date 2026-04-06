@@ -7,7 +7,7 @@ import { auth } from "../FirebaseFrontend";
 // When testing on Expo Go, use your computer's local IP (not localhost)
 // because the phone and computer are on the same WiFi network
 // e.g. "http://192.168.1.100:5000"
-const SERVER_URL = "const SERVER_URL = 'https://boarcast-production.up.railway.app';
+const SERVER_URL ='https://boarcast-production.up.railway.app';
 
 export default function RegisterScreen({ navigation }) {
   const [name, setName] = useState("");
