@@ -20,7 +20,6 @@ export default function MenuTemplate({ title, children }) {
   );
 }
 
-
 export function MenuItem({ icon, label, onPress, danger }) {
   return (
     <TouchableOpacity onPress={onPress} style={styles.item}>
@@ -68,7 +67,6 @@ const styles = StyleSheet.create({
     gap: 16,
   },
 
-  /* 🧊 card section wrapper */
   card: {
     backgroundColor: '#fff',
     borderRadius: 16,
@@ -79,7 +77,6 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
 
-  /* 📱 iOS-style row */
   item: {
     flexDirection: 'row',
     justifyContent: 'space-between',

@@ -178,9 +178,9 @@ export default function AccountScreen({ navigation }) {
         </View>
       </ScrollView>
             <AccountMenu
-              visible={menuOpen}
-              onClose={() => setMenuOpen(false)}
-              navigation={navigation}
+            visible={menuOpen}
+            onClose={() => setMenuOpen(false)}
+            navigation={navigation}
             />
     </SafeAreaView>
   );

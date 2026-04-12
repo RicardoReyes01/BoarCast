@@ -113,7 +113,7 @@ export default function RightSideMenu({ visible, onClose, navigation }) {
             style={styles.item}
             onPress={() => {
                 onClose();
-                navigation.navigate('Notifications');
+                navigation.navigate('Apply');
             }}
             >
             <FontAwesome6 name="arrow-up" size={18} color="#333" />
