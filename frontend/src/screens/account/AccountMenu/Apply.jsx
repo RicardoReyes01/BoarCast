@@ -1,8 +1,17 @@
 import React, { useState } from 'react';
 import { View, Text, Switch, Alert } from 'react-native';
 import MenuTemplate, { MenuItem } from '../Templates/MenuTemplate';
+import { db, auth } from "../../../FirebaseFrontend";
+import {
+  addDoc,
+  collection,
+  serverTimestamp,
+  query,
+  where,
+  getDocs
+} from "firebase/firestore";
 
-export default function Apply() {
+export default function Apply({ navigation }) {
   const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -14,14 +23,27 @@ export default function Apply() {
 
     try {
       setLoading(true);
+      // Check if user has already applied
+      const q = query(
+        collection(db, "applications"),
+        where("userId", "==", auth.currentUser.uid)
+      );
 
-      // 🔌 replace with your backend
-      await fetch('YOUR_BACKEND_URL/apply-org-leader', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          agreeToRules: agree,
-        }),
+      const snapshot = await getDocs(q);
+
+      if (!snapshot.empty) {
+      Alert.alert(
+        "Already Applied",
+        "You can only submit one application."
+      );
+      return;
+    }
+      // Create a new application document in Firestore with status "pending"
+      await addDoc(collection(db, "applications"), {
+        userId: auth.currentUser.uid,
+        status: "pending",
+        agreeToRules: true,
+        createdAt: serverTimestamp()
       });
 
       Alert.alert(
@@ -31,7 +53,9 @@ export default function Apply() {
 
       setAgree(false);
     } catch (err) {
-      Alert.alert('Error', 'Could not submit application.');
+      console.log("APPLICATION ERROR:", err);
+      console.log("DB VALUE:", db);
+      Alert.alert('Error', err.message || 'Could not submit application.');Alert.alert('Error', 'Could not submit application.');
     } finally {
       setLoading(false);
     }
@@ -83,6 +107,12 @@ export default function Apply() {
           icon={loading ? 'spinner' : 'paper-plane'}
           label={loading ? 'Submitting...' : 'Submit Application'}
           onPress={submitApplication}
+        />
+
+        <MenuItem
+          icon="shield"
+          label="Open Admin Panel (Test)"
+          onPress={() => navigation.navigate("AdminApplications")}
         />
       </View>
 

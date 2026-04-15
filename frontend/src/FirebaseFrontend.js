@@ -4,6 +4,7 @@
  
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
  
 // These are your Firebase project's public config values
 // Unlike the serviceAccountKey, these are SAFE to be in your frontend code
@@ -24,7 +25,9 @@ const firebaseConfig = {
 // Initialize the Firebase app with your config
 // Like the backend, this only needs to happen once
 const app = initializeApp(firebaseConfig);
+
  
 // Get the auth instance — this is what you'll use to sign in, sign out, and get tokens
 // Think of it like the client-side equivalent of admin.auth() in the backend
 export const auth = getAuth(app);
+export const db = getFirestore(app);

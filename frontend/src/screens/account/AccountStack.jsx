@@ -3,6 +3,7 @@ import AccountScreen from './AccountScreen';
 import ProfileStack from './ProfileStack';
 import Apply from './AccountMenu/Apply';
 import SettingsStack from './SettingsStack';
+import AdminApplications from '../AdminApplications';
 
 const Stack = createNativeStackNavigator();
 
@@ -13,6 +14,7 @@ export default function AccountStack() {
       <Stack.Screen name="Profile" component={ProfileStack} />
       <Stack.Screen name="Settings" component={SettingsStack} />
       <Stack.Screen name="Apply" component={Apply} />
+      <Stack.Screen name="AdminApplications" component={AdminApplications} />
     </Stack.Navigator>
   );
 }

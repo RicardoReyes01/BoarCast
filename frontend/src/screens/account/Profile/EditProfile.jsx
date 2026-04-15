@@ -6,12 +6,13 @@ import FormTemplate, {
   FormActionRow,
 } from '../Templates/SubPageTemplate'; // adjust path
 
-export default function EditProfileScreen() {
-  const [firstName, setFirstName] = useState('Jamie');
-  const [lastName, setLastName]   = useState('Dawson');
-  const [bio, setBio]             = useState('');
-  const [isPublic, setIsPublic]   = useState(true);
-  const [saving, setSaving]       = useState(false);
+export default function EditProfile() {
+  const [fullName, setFullName] = useState('John Doe');
+  const [bio, setBio] = useState(
+    'Lorem ipsum dolor sit amet, consectetur adipiscing elit...'
+  );
+  const [isPublic, setIsPublic] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
     setSaving(true);
@@ -21,11 +22,24 @@ export default function EditProfileScreen() {
 
   return (
     <FormTemplate title="Edit Profile" onSave={handleSave} saving={saving}>
-
       <FormSection label="Account">
-        <FormFieldRow icon="user"       label="First name" value={firstName} onChangeText={setFirstName} placeholder="First name" autoCapitalize="words" />
-        <FormFieldRow icon="user"       label="Last name"  value={lastName}  onChangeText={setLastName}  placeholder="Last name"  autoCapitalize="words" />
-        <FormFieldRow icon="align-left" label="Bio"        value={bio}       onChangeText={setBio}       placeholder="Add a bio..." multiline last />
+        <FormFieldRow
+          icon="user"
+          label="Full name"
+          value={fullName}
+          onChangeText={setFullName}
+          placeholder="Full name"
+          autoCapitalize="words"
+        />
+        <FormFieldRow
+          icon="align-left"
+          label="Bio"
+          value={bio}
+          onChangeText={setBio}
+          placeholder="Add a bio..."
+          multiline
+          last
+        />
       </FormSection>
 
       <FormSection label="Privacy">

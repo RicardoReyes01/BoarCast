@@ -149,6 +149,56 @@ app.get("/me", verifyToken, async (req, res) => {
 });
 
 
+// UPDATE CURRENT USER PROFILE
+app.put("/me", verifyToken, async (req, res) => {
+  try {
+    const uid = req.user.uid;
+
+    const { name, bio, isPublic } = req.body;
+
+    await db.collection("users").doc(uid).update({
+      name,
+      bio,
+      isPublic,
+    });
+
+    res.json({ success: true });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to update profile" });
+  }
+});
+
+
+// GET ANY USER BY ID
+app.get("/user/:id", verifyToken, async (req, res) => {
+  try {
+    const doc = await db.collection("users").doc(req.params.id).get();
+
+    if (!doc.exists) {
+      return res.status(404).send("User not found");
+    }
+
+    res.json(doc.data());
+  } catch (error) {
+    res.status(500).send("Server error");
+  }
+});
+
+
+// PLACEHOLDER: USER EVENTS
+app.get("/me/events", verifyToken, async (req, res) => {
+  res.json([]);
+});
+
+
+// PLACEHOLDER: USER BADGES
+app.get("/me/badges", verifyToken, async (req, res) => {
+  res.json([]);
+});
+
+
 // ─────────────────────────────────────────────
 // ROUTE: POST /broadcast
 // Purpose: Create a new broadcast (event announcement) in Firestore
@@ -228,6 +278,7 @@ app.get("/user/:id", verifyToken, async (req, res) => {
     res.status(500).send("Server error");
   }
 });
+
 
 //error handling  
 app.use((err, req, res, next) => {
