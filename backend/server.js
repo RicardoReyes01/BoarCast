@@ -1,3 +1,5 @@
+require("dotenv").config();
+console.log("🔥 SERVER IS LOADED");
 const express = require("express");
 const cors = require("cors");
 
@@ -98,6 +100,7 @@ app.post("/register", async (req, res) => {
       role: "student",       // default role — admins get changed manually in Firebase console
       createdAt: new Date(),
       rsvps: [],             // will hold event IDs they RSVP to later
+      interests: [],           // will hold their interests for better event matching later
     });
 
     res.status(201).json({ uid });
@@ -157,9 +160,9 @@ app.put("/me", verifyToken, async (req, res) => {
     const { name, bio, isPublic } = req.body;
 
     await db.collection("users").doc(uid).update({
-      name,
-      bio,
-      isPublic,
+      ...(name !== undefined && { name }),
+      ...(bio !== undefined && { bio }),
+      ...(isPublic !== undefined && { isPublic }),
     });
 
     res.json({ success: true });
@@ -170,19 +173,23 @@ app.put("/me", verifyToken, async (req, res) => {
   }
 });
 
-
-// GET ANY USER BY ID
-app.get("/user/:id", verifyToken, async (req, res) => {
+// UPDATE USER INTERESTS
+app.put("/me/interests", verifyToken, async (req, res) => {
+  console.log("🔥 HIT /me/interests");
   try {
-    const doc = await db.collection("users").doc(req.params.id).get();
+    const uid = req.user.uid;
+    const { interests } = req.body;
 
-    if (!doc.exists) {
-      return res.status(404).send("User not found");
-    }
+    await db.collection("users").doc(uid).set(
+      { interests },
+      { merge: true }
+    );
 
-    res.json(doc.data());
+    res.json({ success: true });
+
   } catch (error) {
-    res.status(500).send("Server error");
+    console.error(error);
+    res.status(500).json({ error: "Failed to update interests" });
   }
 });
 

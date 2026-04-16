@@ -179,7 +179,7 @@ export default function EventManagement() {
       </View>
 
       <Text style={styles.categoryInfo}>
-        Categories: Academic, Social, Sports, Service, Arts, Technology, Games, Other
+        Categories: Academic, Social, Sports, Greek, Service, Arts, Food, Technology, Games, Other
       </Text>
 
       {/* MANAGE EVENTS SECTION */}

@@ -42,7 +42,7 @@ export default function HomeScreen() {
     return () => unsub();
   }, []);
 
-  const categories = ['All', 'Academic', 'Social', 'Sports', 'Service', 'Arts', 'Technology', 'Games', 'Other'];
+  const categories = ['All', 'Academic', 'Social', 'Sports', 'Greek', 'Service', 'Arts', 'Food', 'Technology', 'Games', 'Other'];
 
   /*
     Filter logic
@@ -107,7 +107,7 @@ export default function HomeScreen() {
         {/* Event Cards */}
         {filteredEvents.map((event) => (
           <TouchableOpacity key={event.id} style={styles.eventCard}>
-            <View style={[styles.eventColorBar, { backgroundColor:'#003087' }]} />
+            <View style={[styles.eventColorBar, { backgroundColor:'#0202df' }]} />
 
             <View style={styles.eventContent}>
 

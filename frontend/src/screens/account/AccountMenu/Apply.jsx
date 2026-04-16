@@ -118,6 +118,12 @@ export default function Apply({ navigation }) {
             label="Create & manage events"
             onPress={() => navigation.navigate("EventManagement")}
           />
+
+          <MenuItem
+              icon="shield"
+              label="Open Admin Panel (Test)"
+              onPress={() => navigation.navigate("AdminApplications")}
+            />
         </View>
       )}
 
@@ -154,12 +160,6 @@ export default function Apply({ navigation }) {
               icon={loading ? 'spinner' : 'paper-plane'}
               label={loading ? 'Submitting...' : 'Submit Application'}
               onPress={submitApplication}
-            />
-
-            <MenuItem
-              icon="shield"
-              label="Open Admin Panel (Test)"
-              onPress={() => navigation.navigate("AdminApplications")}
             />
           </View>
         </>

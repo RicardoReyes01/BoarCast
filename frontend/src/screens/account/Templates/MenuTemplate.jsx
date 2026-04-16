@@ -1,21 +1,24 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
-import { FontAwesome6 } from '@expo/vector-icons';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
+import { FontAwesome6 } from "@expo/vector-icons";
 
 export default function MenuTemplate({ title, children }) {
   return (
     <SafeAreaView style={styles.safe}>
-
       {/* HEADER */}
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
       </View>
 
       {/* CONTENT */}
-      <ScrollView contentContainerStyle={styles.content}>
-        {children}
-      </ScrollView>
-
+      <ScrollView contentContainerStyle={styles.content}>{children}</ScrollView>
     </SafeAreaView>
   );
 }
@@ -23,14 +26,13 @@ export default function MenuTemplate({ title, children }) {
 export function MenuItem({ icon, label, onPress, danger }) {
   return (
     <TouchableOpacity onPress={onPress} style={styles.item}>
-      
       <View style={styles.itemLeft}>
         <FontAwesome6
           name={icon}
           size={16}
-          color={danger ? '#E53935' : '#333'}
+          color={danger ? "#E53935" : "#333"}
         />
-        <Text style={[styles.itemText, danger && { color: '#E53935' }]}>
+        <Text style={[styles.itemText, danger && { color: "#E53935" }]}>
           {label}
         </Text>
       </View>
@@ -43,12 +45,12 @@ export function MenuItem({ icon, label, onPress, danger }) {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#F4F6FA',
+    backgroundColor: "#F4F6FA",
   },
 
   /* 🔵 modern header */
   header: {
-    backgroundColor: '#003087',
+    backgroundColor: "#0202df",
     paddingVertical: 22,
     paddingHorizontal: 20,
     borderBottomLeftRadius: 22,
@@ -56,10 +58,10 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '800',
-    color: '#fff',
+    fontWeight: "800",
+    color: "#fff",
     letterSpacing: 0.5,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   content: {
@@ -68,32 +70,32 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 16,
     paddingVertical: 6,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.05,
     shadowRadius: 10,
     elevation: 2,
   },
 
   item: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 14,
     paddingHorizontal: 14,
   },
 
   itemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
 
   itemText: {
     fontSize: 15,
-    fontWeight: '500',
-    color: '#222',
+    fontWeight: "500",
+    color: "#222",
   },
 });

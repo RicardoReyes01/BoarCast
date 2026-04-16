@@ -164,7 +164,7 @@ export function FormToggleRow({
       <Switch
         value={value}
         onValueChange={onChange}
-        trackColor={{ false: "#ddd", true: "#003087" }}
+        trackColor={{ false: "#ddd", true: "#0202df" }}
         thumbColor="#fff"
       />
     </View>
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
 
   // Header
   header: {
-    backgroundColor: "#003087",
+    backgroundColor: "#0202df",
     paddingVertical: 22,
     paddingHorizontal: 20,
     borderBottomLeftRadius: 22,
