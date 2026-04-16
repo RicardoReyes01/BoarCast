@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { View, Image, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../FirebaseFrontend";
 
@@ -46,6 +46,13 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <View style={styles.logoContainer}>
+          <Image
+            source={require('../../assets/boarcast-logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+      </View>
       <Text style={styles.title}>BoarCast</Text>
       <Text style={styles.subtitle}>Sign in to your account</Text>
 
@@ -130,5 +137,22 @@ const styles = StyleSheet.create({
     color: "#007AFF",
     textAlign: "center",
     fontSize: 14,
+  },
+
+  logoContainer: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    backgroundColor: '#FFB81C',
+    borderRadius: 100, 
+    padding: 2, 
+    marginBottom: 24,
+    alignSelf: 'center',     
+  },
+
+  logo: {
+    width: 200,
+    height: 200,
   },
 });

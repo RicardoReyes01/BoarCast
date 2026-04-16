@@ -1,9 +1,9 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import Notifications from "./Settings/Notifications";
-import Privacy from "./Settings/Privacy";
-import About from "./Settings/About";
-import SettingsScreen from "./AccountMenu/SettingsScreen";
+import Notifications from "../Settings/Notifications";
+import Privacy from "../Settings/Privacy";
+import About from "../Settings/About";
+import SettingsScreen from "../AccountMenu/SettingsScreen";
 
 const Stack = createNativeStackNavigator();
 

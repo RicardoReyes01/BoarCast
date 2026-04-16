@@ -1,9 +1,9 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import ProfileScreen from './AccountMenu/ProfileScreen';
-import EditProfile from './Profile/EditProfile';
-import MyEvents from './Profile/MyEvents';
-import Badges from './Profile/Badges';
+import ProfileScreen from '../AccountMenu/ProfileScreen';
+import EditProfile from '../Profile/EditProfile';
+import MyEvents from '../Profile/MyEvents';
+import Badges from '../Profile/Badges';
 
 const Stack = createNativeStackNavigator();
 

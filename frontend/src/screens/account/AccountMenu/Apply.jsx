@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Switch, Alert } from 'react-native';
 import MenuTemplate, { MenuItem } from '../Templates/MenuTemplate';
 import { db, auth } from "../../../FirebaseFrontend";
@@ -8,12 +8,36 @@ import {
   serverTimestamp,
   query,
   where,
-  getDocs
+  getDocs,
+  doc,
+  onSnapshot
 } from "firebase/firestore";
 
 export default function Apply({ navigation }) {
   const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // New state to track the user's role
+  const [role, setRole] = useState(null);
+
+  /*
+    Fetch the user's role in real-time.
+    This ensures the UI updates immediately if an admin upgrades the user.
+  */
+  useEffect(() => {
+    if (!auth.currentUser) return;
+
+    const unsubscribe = onSnapshot(
+      doc(db, "users", auth.currentUser.uid),
+      (docSnap) => {
+        if (docSnap.exists()) {
+          setRole(docSnap.data().role);
+        }
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
 
   const submitApplication = async () => {
     if (!agree) {
@@ -23,6 +47,7 @@ export default function Apply({ navigation }) {
 
     try {
       setLoading(true);
+
       // Check if user has already applied
       const q = query(
         collection(db, "applications"),
@@ -32,12 +57,13 @@ export default function Apply({ navigation }) {
       const snapshot = await getDocs(q);
 
       if (!snapshot.empty) {
-      Alert.alert(
-        "Already Applied",
-        "You can only submit one application."
-      );
-      return;
-    }
+        Alert.alert(
+          "Already Applied",
+          "You can only submit one application."
+        );
+        return;
+      }
+
       // Create a new application document in Firestore with status "pending"
       await addDoc(collection(db, "applications"), {
         userId: auth.currentUser.uid,
@@ -54,8 +80,7 @@ export default function Apply({ navigation }) {
       setAgree(false);
     } catch (err) {
       console.log("APPLICATION ERROR:", err);
-      console.log("DB VALUE:", db);
-      Alert.alert('Error', err.message || 'Could not submit application.');Alert.alert('Error', 'Could not submit application.');
+      Alert.alert('Error', err.message || 'Could not submit application.');
     } finally {
       setLoading(false);
     }
@@ -64,57 +89,81 @@ export default function Apply({ navigation }) {
   return (
     <MenuTemplate title="Org Leader Application">
 
-      {/* INFO CARD */}
+      {/* 
+        INFO CARD
+        This section dynamically changes based on whether the user is an org leader
+      */}
       <View style={styles.card}>
-        <Text style={styles.title}>Upgrade to Org Leader</Text>
+        <Text style={styles.title}>
+          {role === "org_leader"
+            ? "You have been upgraded to Org Leader!"
+            : "Upgrade to Org Leader"}
+        </Text>
+
         <Text style={styles.subtitle}>
-          Org Leaders can create events, manage members, and award badges.
+          {role === "org_leader"
+            ? "You can now create and manage events by filling out an event form."
+            : "Org Leaders can create events, manage members, and award badges."}
         </Text>
       </View>
 
-      {/* PERMISSIONS PREVIEW */}
-      <View style={styles.card}>
-        <MenuItem icon="calendar-plus" label="Create & manage events" />
-        <MenuItem icon="users" label="Manage members" />
-        <MenuItem icon="medal" label="Award badges" />
-        <MenuItem icon="chart-line" label="View analytics" />
-      </View>
-
-      {/* AGREEMENT */}
-      <View style={styles.card}>
-        <View style={styles.agreeRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.agreeTitle}>
-              I agree to community rules
-            </Text>
-            <Text style={styles.agreeSub}>
-              Misuse of privileges may result in removal
-            </Text>
-          </View>
-
-          <Switch
-            value={agree}
-            onValueChange={setAgree}
-            trackColor={{ false: '#ddd', true: '#003087' }}
-            thumbColor="#fff"
+      {/* 
+        PERMISSIONS / EVENT MANAGEMENT
+        Only visible to users with org_leader role
+      */}
+      {role === "org_leader" && (
+        <View style={styles.card}>
+          <MenuItem
+            icon="calendar-plus"
+            label="Create & manage events"
+            onPress={() => navigation.navigate("EventManagement")}
           />
         </View>
-      </View>
+      )}
 
-      {/* SUBMIT */}
-      <View style={styles.card}>
-        <MenuItem
-          icon={loading ? 'spinner' : 'paper-plane'}
-          label={loading ? 'Submitting...' : 'Submit Application'}
-          onPress={submitApplication}
-        />
+      {/* 
+        APPLICATION SECTION
+        Hidden if the user is already an org leader
+      */}
+      {role !== "org_leader" && (
+        <>
+          {/* AGREEMENT */}
+          <View style={styles.card}>
+            <View style={styles.agreeRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.agreeTitle}>
+                  I agree to community rules
+                </Text>
+                <Text style={styles.agreeSub}>
+                  Misuse of privileges may result in removal
+                </Text>
+              </View>
 
-        <MenuItem
-          icon="shield"
-          label="Open Admin Panel (Test)"
-          onPress={() => navigation.navigate("AdminApplications")}
-        />
-      </View>
+              <Switch
+                value={agree}
+                onValueChange={setAgree}
+                trackColor={{ false: '#ddd', true: '#003087' }}
+                thumbColor="#fff"
+              />
+            </View>
+          </View>
+
+          {/* SUBMIT */}
+          <View style={styles.card}>
+            <MenuItem
+              icon={loading ? 'spinner' : 'paper-plane'}
+              label={loading ? 'Submitting...' : 'Submit Application'}
+              onPress={submitApplication}
+            />
+
+            <MenuItem
+              icon="shield"
+              label="Open Admin Panel (Test)"
+              onPress={() => navigation.navigate("AdminApplications")}
+            />
+          </View>
+        </>
+      )}
 
     </MenuTemplate>
   );

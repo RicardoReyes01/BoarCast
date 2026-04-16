@@ -9,7 +9,7 @@ import MapScreen from '../screens/MapScreen';
 import CalendarScreen from '../screens/CalendarScreen';
 
 // Account tab to new stack
-import AccountStack from '../screens/account/AccountStack';
+import AccountStack from '../screens/account/stacks/AccountStack';
 
 // Auth screens
 import LoginScreen from '../screens/LoginScreen';

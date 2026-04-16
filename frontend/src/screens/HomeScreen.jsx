@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
+  Image,
   Text,
   StyleSheet,
   ScrollView,
@@ -9,53 +10,65 @@ import {
   StatusBar,
 } from 'react-native';
 import { FontAwesome6 } from '@expo/vector-icons';
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "../FirebaseFrontend";
 
 export default function HomeScreen() {
   const [activeFilter, setActiveFilter] = useState('All');
 
-  // Mock data - replace with your actual data source
-  const upcomingEvents = [
-    {
-      id: 1,
-      title: 'Tech Talk: AI in Education',
-      organization: 'Computer Science Club',
-      date: 'Feb 20',
-      time: '6:00 PM',
-      location: 'Student Center 301',
-      attendees: 45,
-      color: '#0000FF',
-      category: 'Academic',
-    },
-    {
-      id: 2,
-      title: 'Spring Mixer Social',
-      organization: 'Student Activities Board',
-      date: 'Feb 22',
-      time: '8:00 PM',
-      location: 'Campus Quad',
-      attendees: 120,
-      color: '#FFB81C',
-      category: 'Social',
-    },
-  ];
+  // Live events from Firestore
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
 
-  const categories = ['All', 'Academic', 'Social', 'Sports', 'Service', 'Arts'];
+  /*
+    Real-time listener for events collection
+  */
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, "events"), (snapshot) => {
+      const eventsData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      // Sort newest first (safe check for missing createdAt)
+      eventsData.sort((a, b) => {
+        const aTime = a.createdAt?.seconds || 0;
+        const bTime = b.createdAt?.seconds || 0;
+        return bTime - aTime;
+      });
+
+      setUpcomingEvents(eventsData);
+    });
+
+    return () => unsub();
+  }, []);
+
+  const categories = ['All', 'Academic', 'Social', 'Sports', 'Service', 'Arts', 'Technology', 'Games', 'Other'];
+
+  /*
+    Filter logic
+  */
+  const filteredEvents =
+    activeFilter === 'All'
+      ? upcomingEvents
+      : upcomingEvents.filter(event => event.category === activeFilter);
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>BoarCast</Text>
           <Text style={styles.subtitle}>Discover campus events</Text>
         </View>
-        <TouchableOpacity style={styles.profileButton}>
-          <View style={styles.profileCircle}>
-            <Text style={styles.profileInitials}>JD</Text>
-          </View>
-        </TouchableOpacity>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('../../assets/boarcast-logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
       </View>
 
       {/* Search Bar */}
@@ -69,15 +82,22 @@ export default function HomeScreen() {
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+
         {/* Category Filters */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtersContainer}>
           {categories.map((category) => (
             <TouchableOpacity
               key={category}
-              style={[styles.filterChip, activeFilter === category && styles.filterChipActive]}
+              style={[
+                styles.filterChip,
+                activeFilter === category && styles.filterChipActive
+              ]}
               onPress={() => setActiveFilter(category)}
             >
-              <Text style={[styles.filterText, activeFilter === category && styles.filterTextActive]}>
+              <Text style={[
+                styles.filterText,
+                activeFilter === category && styles.filterTextActive
+              ]}>
                 {category}
               </Text>
             </TouchableOpacity>
@@ -85,15 +105,17 @@ export default function HomeScreen() {
         </ScrollView>
 
         {/* Event Cards */}
-        {upcomingEvents.map((event) => (
+        {filteredEvents.map((event) => (
           <TouchableOpacity key={event.id} style={styles.eventCard}>
-            <View style={[styles.eventColorBar, { backgroundColor: event.color }]} />
-            
+            <View style={[styles.eventColorBar, { backgroundColor:'#003087' }]} />
+
             <View style={styles.eventContent}>
+
               <View style={styles.eventHeader}>
                 <View style={styles.eventDateBox}>
                   <Text style={styles.eventDateText}>{event.date}</Text>
                 </View>
+
                 <View style={styles.eventBadge}>
                   <Text style={styles.eventBadgeText}>{event.category}</Text>
                 </View>
@@ -107,6 +129,7 @@ export default function HomeScreen() {
                   <FontAwesome6 name="clock" size={14} color="#000000" />
                   <Text style={styles.eventDetailText}> {event.time}</Text>
                 </View>
+
                 <View style={styles.eventDetail}>
                   <FontAwesome6 name="location-dot" size={14} color="#000000" />
                   <Text style={styles.eventDetailText}> {event.location}</Text>
@@ -116,24 +139,29 @@ export default function HomeScreen() {
               <View style={styles.eventFooter}>
                 <View style={styles.attendeesInfo}>
                   <FontAwesome6 name="people-group" size={14} color="#000000" />
-                  <Text style={styles.attendeesText}> {event.attendees} going</Text>
+                  <Text style={styles.attendeesText}>
+                    {' '}
+                    {event.attendees || 0} going
+                  </Text>
                 </View>
+
                 <TouchableOpacity style={styles.rsvpButton}>
                   <Text style={styles.rsvpButtonText}>RSVP</Text>
                 </TouchableOpacity>
               </View>
+
             </View>
           </TouchableOpacity>
         ))}
+
       </ScrollView>
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#f7f7f7',
   },
   header: {
     flexDirection: 'row',
@@ -143,6 +171,12 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 20,
     backgroundColor: '#FFF',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   greeting: {
     fontSize: 28,
@@ -154,25 +188,23 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 4,
   },
-  profileButton: {
+
+  logoContainer: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    backgroundColor: '#FFB81C',
+    borderRadius: 100, // slightly larger since we're scaling up
+    padding: 2,       // gives breathing room around logo
+    marginLeft: 0,   // moves it slightly left
   },
-  profileCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#1A1A1A',
-    justifyContent: 'center',
-    alignItems: 'center',
+
+  logo: {
+    width: 52,
+    height: 52,
   },
-  profileInitials: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '700',
-  },
+
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -186,10 +218,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
-  },
-  searchIcon: {
-    fontSize: 18,
-    marginRight: 10,
   },
   searchInput: {
     flex: 1,
@@ -236,7 +264,8 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
   eventColorBar: {
-    height: 6,
+    height: 14,
+    backgroundColor: '#003087',
   },
   eventContent: {
     padding: 16,
@@ -259,43 +288,49 @@ const styles = StyleSheet.create({
     color: '#1A1A1A',
   },
   eventBadge: {
-    backgroundColor: '#FFF3E0',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
+    backgroundColor: '#286ff588',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
   eventBadgeText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
-    color: '#F57C00',
+    color: '#003087',
   },
+
   eventTitle: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '700',
     color: '#1A1A1A',
     marginBottom: 6,
+    backgroundColor: '#FFB81C',
+    padding: 10,
+    borderRadius: 8,
   },
+
   eventOrganization: {
-    fontSize: 14,
+    marginTop: 4,
+    fontSize: 15,
     color: '#666',
-    marginBottom: 12,
+    marginBottom: 10,
   },
+
   eventDetails: {
     marginBottom: 14,
   },
+
   eventDetail: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 6,
   },
-  eventDetailIcon: {
-    fontSize: 14,
-    marginRight: 6,
-  },
+
   eventDetailText: {
     fontSize: 14,
     color: '#555',
   },
+
   eventFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -304,25 +339,25 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#F0F0F0',
   },
+
   attendeesInfo: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  attendeesIcon: {
-    fontSize: 16,
-    marginRight: 6,
-  },
+
   attendeesText: {
     fontSize: 14,
     color: '#666',
     fontWeight: '500',
   },
+
   rsvpButton: {
     backgroundColor: '#1A1A1A',
     paddingHorizontal: 20,
     paddingVertical: 8,
     borderRadius: 20,
   },
+
   rsvpButtonText: {
     fontSize: 13,
     fontWeight: '700',
