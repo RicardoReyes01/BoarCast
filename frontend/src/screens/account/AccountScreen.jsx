@@ -13,10 +13,11 @@ import { FontAwesome6 } from '@expo/vector-icons';
 import AccountMenu from '../../components/AccountMenu';
 import { useAuth } from '../../context/AuthContext';
 
+
 const TAMUK_BLUE = '#0202df';
 const TAMUK_GOLD = '#FFB81C';
 
-const SERVER_URL = 'https://boarcast-production.up.railway.app';
+const SERVER_URL = "https://boarcast-production.up.railway.app";
 
 // Centralized category list used across the app
 const categories = [
@@ -120,8 +121,6 @@ export default function AccountScreen({ navigation }) {
     try {
       const token = await authContext.getToken();
 
-      console.log("SENDING INTERESTS:", selectedInterests);
-
       const response = await fetch(`${SERVER_URL}/me/interests`, {
         method: 'PUT',
         headers: {
@@ -133,9 +132,6 @@ export default function AccountScreen({ navigation }) {
 
       const text = await response.text();
 
-      console.log("STATUS:", response.status);
-      console.log("RAW RESPONSE:", text);
-
       let data;
       try {
         data = JSON.parse(text);
@@ -143,8 +139,6 @@ export default function AccountScreen({ navigation }) {
         console.log("Response is NOT JSON (important)");
         return;
       }
-
-      console.log("PARSED:", data);
 
       if (!response.ok) {
         console.error("Server error:", data);
@@ -163,9 +157,9 @@ export default function AccountScreen({ navigation }) {
     );
   }
 
-  const userInterests = editingInterests
+  const displayedInterests = editingInterests
   ? selectedInterests
-  : (profile?.interests ?? []);
+  : profile?.interests ?? [];
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -189,7 +183,11 @@ export default function AccountScreen({ navigation }) {
             <View style={styles.profileInfo}>
               <Text style={styles.fullName}>{profile?.name ?? 'Unknown'}</Text>
               <Text style={styles.majorText}>
-                {profile?.role === 'admin' ? 'Admin' : 'Student'}
+                {profile?.role === 'org_leader'
+                  ? 'Org Leader'
+                  : profile?.role === 'student'
+                  ? 'Student'
+                  : 'Unknown'}
               </Text>
 
               <View style={styles.eventsBadge}>
@@ -228,11 +226,23 @@ export default function AccountScreen({ navigation }) {
 
             {/* Display saved interests */}
             <View style={styles.tagsRow}>
-              {userInterests.map((interest) => (
-                <View key={interest} style={[styles.tag, { backgroundColor: '#ddd' }]}>
-                  <Text style={styles.tagText}>{interest}</Text>
-                </View>
-              ))}
+              {displayedInterests.map((interest) => {
+                const style = categoryStyles[interest] ?? categoryStyles.Other;
+
+                return (
+                  <View
+                    key={interest}
+                    style={[
+                      styles.tag,
+                      { backgroundColor: style.bg },
+                    ]}
+                  >
+                    <Text style={[styles.tagText, { color: style.color }]}>
+                      {interest}
+                    </Text>
+                  </View>
+                );
+              })}
             </View>
 
             {/* Editing mode: selectable categories */}
