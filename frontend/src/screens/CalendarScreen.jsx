@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, SafeAreaView } from "react-native";
-import { Calendar, LocalConfig } from "react-native-calendars";
+import { Calendar, LocaleConfig } from "react-native-calendars";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../FirebaseFrontend";
 
