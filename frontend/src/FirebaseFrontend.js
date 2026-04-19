@@ -31,3 +31,4 @@ const app = initializeApp(firebaseConfig);
 // Think of it like the client-side equivalent of admin.auth() in the backend
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export default app;
