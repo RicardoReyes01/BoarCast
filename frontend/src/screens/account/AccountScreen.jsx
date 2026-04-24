@@ -348,7 +348,7 @@ export default function AccountScreen({ navigation }) {
         </View>
         {/* Badges */}
         <View style={styles.badgesSection}>
-          <Text style={styles.badgesLabel}>BADGES EARNED</Text>
+          <Text style={styles.badgesLabel}>Badges Earned</Text>
           <View style={styles.badgesGrid}>
             {badges.map((badge) => (
               <View
@@ -435,8 +435,8 @@ const styles = StyleSheet.create({
   tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   tag: { borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
   tagText: { fontSize: 12, fontWeight: '500' },
-  badgesSection: { backgroundColor: '#fff', padding: 20 },
-  badgesLabel: { fontSize: 13, color: '#888', marginBottom: 12 },
+  badgesSection: { backgroundColor: '#fff', padding: 20, marginHorizontal: 12, borderRadius: 14, marginBottom: 12},
+  badgesLabel: { fontSize: 12, color: '#444', marginBottom: 12, fontWeight: 800, textAlign: "center"},
   badgesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   badgeCard: { width: '47%', borderRadius: 14, padding: 14, alignItems: 'center' },
   badgeIconCircle: {
@@ -454,10 +454,11 @@ const styles = StyleSheet.create({
     marginTop: 12,
     borderRadius: 14,
     marginHorizontal: 12,
-    marginBottom: 10,
+    marginBottom: 12,
   },
 
   recommendedTitle: {
+    textAlign: "center",
     fontSize: 12,
     fontWeight: '800',
     marginBottom: 12,
@@ -470,7 +471,7 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 12,
     marginBottom: 10,
-    borderLeftWidth: 4,
+    borderLeftWidth: 8,
     borderLeftColor: TAMUK_BLUE,
     flexDirection: 'row',
     alignItems: 'stretch',

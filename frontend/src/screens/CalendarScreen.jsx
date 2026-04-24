@@ -140,8 +140,12 @@ export default function CalendarScreen() {
                     <Text style={styles.eventText}>Time: {event.time}</Text>
                   ) : null}
 
-                  {event.description ? (
-                    <Text style={styles.eventText}>{event.description}</Text>
+                  {event.location ? (
+                    <Text style={styles.eventText}>Location: {event.location}</Text>
+                  ) : null}
+
+                  {event.organization ? (
+                    <Text style={styles.eventText}>Org: {event.organization}</Text>
                   ) : null}
                 </View>
               </View>
