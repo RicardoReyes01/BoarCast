@@ -74,14 +74,14 @@ export default function CalendarScreen() {
       marks[dateKey] = {
         ...(marks[dateKey] || {}),
         marked: true,
-        dotColor: "#0B5CAD",
+        dotColor: "#FFB81C",
       };
     });
 
     marks[selectedDate] = {
       ...(marks[selectedDate] || {}),
       selected: true,
-      selectedColor: "#0B5CAD",
+      selectedColor: "#0202df",
     };
 
     return marks;
@@ -105,16 +105,16 @@ export default function CalendarScreen() {
             onDayPress={(day) => setSelectedDate(day.dateString)}
             markedDates={markedDates}
             theme={{
-              arrowColor: "#0B5CAD",
-              monthTextColor: "#0B5CAD",
+              arrowColor: "#0202df",
+              monthTextColor: "#0202df",
               textDayHeaderFontWeight: "700",
               textDayHeaderFontSize: 18,
               textMonthFontSize: 22,
               textMonthFontWeight: "700",
-              todayTextColor: "#0B5CAD",
+              todayTextColor: "#0202df",
               selectedDayTextColor: "#fff",
-              dotColor: "#0B5CAD",
-              textSectionTitleColor: "#0B5CAD",
+              dotColor: "#0202df",
+              textSectionTitleColor: "#0202df",
             }}
             style={styles.calendar}
           />
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   headerCard: {
-    backgroundColor: "#0B5CAD",
+    backgroundColor: "#0202df",
     borderRadius: 24,
     padding: 24,
     marginBottom: 20,
@@ -208,13 +208,15 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: "#fff",
-    fontSize: 28,
-    fontWeight: "700",
+    fontSize: 32,
+    fontWeight: "600",
+    textAlign: "center",
   },
   headerSubtitle: {
-    color: "#E6EEF8",
+    color: "#FFB81C",
     fontSize: 16,
     marginTop: 6,
+    textAlign: "center",
   },
   calendarCard: {
     backgroundColor: "#fff",
@@ -243,7 +245,7 @@ const styles = StyleSheet.create({
   eventsTitle: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#0B5CAD",
+    color: "#0202df",
     marginBottom: 16,
   },
   noEvents: {
@@ -259,21 +261,6 @@ const styles = StyleSheet.create({
   },
   eventAccent: {
     width: 8,
-    backgroundColor: "#F4B400",
-  },
-  eventContent: {
-    flex: 1,
-    padding: 16,
-  },
-  eventName: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1F2937",
-    marginBottom: 8,
-  },
-  eventText: {
-    fontSize: 15,
-    color: "#4B5563",
-    marginBottom: 2,
-  },
-});
+    backgroundColor: "#FFB81C",
+  }
+})

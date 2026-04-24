@@ -156,7 +156,7 @@ export default function EventManagement() {
 
         <TextInput placeholder="Event Title" style={styles.input} onChangeText={setTitle} value={title} />
         <TextInput placeholder="Organization" style={styles.input} onChangeText={setOrganization} value={organization} />
-        <TextInput placeholder="Date (Feb 20)" style={styles.input} onChangeText={setDate} value={date} />
+        <TextInput placeholder="Date (YYYY-MM-DD)" style={styles.input} onChangeText={setDate} value={date} />
         <TextInput placeholder="Time (6:00 PM)" style={styles.input} onChangeText={setTime} value={time} />
         <TextInput placeholder="Location" style={styles.input} onChangeText={setLocation} value={location} />
         <TextInput placeholder="Category" style={styles.input} onChangeText={setCategory} value={category} />

@@ -10,12 +10,20 @@ import {
   StatusBar,
 } from 'react-native';
 import { FontAwesome6 } from '@expo/vector-icons';
-import { collection, onSnapshot } from "firebase/firestore";
-import { db } from "../FirebaseFrontend";
+import { 
+  doc, 
+  getDoc,
+  updateDoc, 
+  arrayUnion, 
+  arrayRemove, 
+  collection, 
+  onSnapshot 
+} from "firebase/firestore";
+import { auth, db } from "../FirebaseFrontend";
 
 export default function HomeScreen() {
   const [activeFilter, setActiveFilter] = useState('All');
-
+  const [userRole, setUserRole] = useState(null);
   // Live events from Firestore
   const [upcomingEvents, setUpcomingEvents] = useState([]);
 
@@ -42,6 +50,23 @@ export default function HomeScreen() {
     return () => unsub();
   }, []);
 
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const uid = auth.currentUser.uid;
+        const userRef = doc(db, "users", uid);
+        const snap = await getDoc(userRef);
+
+        if (snap.exists()) {
+          setUserRole(snap.data().role);
+        }
+      } catch (err) {
+        console.log("USER FETCH ERROR:", err);
+      }
+    };
+
+    fetchUser();
+  }, []);
   const categories = ['All', 'Academic', 'Social', 'Sports', 'Greek', 'Service', 'Arts', 'Food', 'Technology', 'Games', 'Other'];
 
   /*
@@ -51,6 +76,41 @@ export default function HomeScreen() {
     activeFilter === 'All'
       ? upcomingEvents
       : upcomingEvents.filter(event => event.category === activeFilter);
+
+  
+  const toggleRSVP = async (event) => {
+  try {
+    const userId = auth.currentUser?.uid;
+    if (!userId) return;
+
+    const eventRef = doc(db, "events", event.id);
+    const alreadyRSVPed = event.rsvps?.includes(userId);
+
+    if (alreadyRSVPed) {
+      await updateDoc(eventRef, {
+        rsvps: arrayRemove(userId)
+      });
+    } else {
+      await updateDoc(eventRef, {
+        rsvps: arrayUnion(userId)
+      });
+    }
+
+  } catch (err) {
+    console.log("RSVP ERROR:", err);
+  }
+};
+
+  function formatPrettyDate(dateString) {
+    if (!dateString) return "";
+
+    const date = new Date(dateString + "T00:00:00");
+
+    return date.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+    });
+  }
 
   return (
     <View style={styles.container}>
@@ -105,54 +165,66 @@ export default function HomeScreen() {
         </ScrollView>
 
         {/* Event Cards */}
-        {filteredEvents.map((event) => (
-          <TouchableOpacity key={event.id} style={styles.eventCard}>
-            <View style={[styles.eventColorBar, { backgroundColor:'#0202df' }]} />
+        {filteredEvents.map((event) => {
+            const userId = auth.currentUser?.uid;
+            const alreadyRSVPed = event.rsvps?.includes(userId);
 
-            <View style={styles.eventContent}>
+            return (
+              <TouchableOpacity key={event.id} style={styles.eventCard}>
+                <View style={[styles.eventColorBar, { backgroundColor:'#0202df' }]} />
 
-              <View style={styles.eventHeader}>
-                <View style={styles.eventDateBox}>
-                  <Text style={styles.eventDateText}>{event.date}</Text>
+                <View style={styles.eventContent}>
+
+                  <View style={styles.eventHeader}>
+                    <View style={styles.eventDateBox}>
+                      <Text style={styles.eventDateText}>{formatPrettyDate(event.date)}</Text>
+                    </View>
+
+                    <View style={styles.eventBadge}>
+                      <Text style={styles.eventBadgeText}>{event.category}</Text>
+                    </View>
+                  </View>
+
+                  <Text style={styles.eventTitle}>{event.title}</Text>
+                  <Text style={styles.eventOrganization}>{event.organization}</Text>
+
+                  <View style={styles.eventDetails}>
+                    <View style={styles.eventDetail}>
+                      <FontAwesome6 name="clock" size={14} color="#000000" />
+                      <Text style={styles.eventDetailText}> {event.time}</Text>
+                    </View>
+
+                    <View style={styles.eventDetail}>
+                      <FontAwesome6 name="location-dot" size={14} color="#000000" />
+                      <Text style={styles.eventDetailText}> {event.location}</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.eventFooter}>
+                    <View style={styles.attendeesInfo}>
+                      <FontAwesome6 name="people-group" size={14} color="#000000" />
+                      <Text style={styles.attendeesText}>
+                        {" "}
+                        {event.rsvps?.length || 0} going
+                      </Text>
+                    </View>
+
+                    {userRole === "student" && (
+                      <TouchableOpacity
+                        style={styles.rsvpButton}
+                        onPress={() => toggleRSVP(event)}
+                      >
+                        <Text style={styles.rsvpButtonText}>
+                          {alreadyRSVPed ? "Cancel RSVP" : "RSVP"}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
                 </View>
-
-                <View style={styles.eventBadge}>
-                  <Text style={styles.eventBadgeText}>{event.category}</Text>
-                </View>
-              </View>
-
-              <Text style={styles.eventTitle}>{event.title}</Text>
-              <Text style={styles.eventOrganization}>{event.organization}</Text>
-
-              <View style={styles.eventDetails}>
-                <View style={styles.eventDetail}>
-                  <FontAwesome6 name="clock" size={14} color="#000000" />
-                  <Text style={styles.eventDetailText}> {event.time}</Text>
-                </View>
-
-                <View style={styles.eventDetail}>
-                  <FontAwesome6 name="location-dot" size={14} color="#000000" />
-                  <Text style={styles.eventDetailText}> {event.location}</Text>
-                </View>
-              </View>
-
-              <View style={styles.eventFooter}>
-                <View style={styles.attendeesInfo}>
-                  <FontAwesome6 name="people-group" size={14} color="#000000" />
-                  <Text style={styles.attendeesText}>
-                    {' '}
-                    {event.attendees || 0} going
-                  </Text>
-                </View>
-
-                <TouchableOpacity style={styles.rsvpButton}>
-                  <Text style={styles.rsvpButtonText}>RSVP</Text>
-                </TouchableOpacity>
-              </View>
-
-            </View>
-          </TouchableOpacity>
-        ))}
+              </TouchableOpacity>
+            );
+          })}
 
       </ScrollView>
     </View>

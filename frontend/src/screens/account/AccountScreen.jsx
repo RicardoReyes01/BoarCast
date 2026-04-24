@@ -12,6 +12,8 @@ import { FontAwesome6 } from '@expo/vector-icons';
 
 import AccountMenu from '../../components/AccountMenu';
 import { useAuth } from '../../context/AuthContext';
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../../FirebaseFrontend";
 
 
 const TAMUK_BLUE = '#0202df';
@@ -68,7 +70,29 @@ export default function AccountScreen({ navigation }) {
   // Holds the currently selected interests (editable state)
   const [selectedInterests, setSelectedInterests] = useState([]);
 
+  const [recommendedEvents, setRecommendedEvents] = useState([]);
+
   const authContext = useAuth();
+
+  const fetchRecommendedEvents = async (interests) => {
+    try {
+      const snapshot = await getDocs(collection(db, "events"));
+
+      const allEvents = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      const filtered = allEvents.filter((event) =>
+        interests?.length &&
+        interests.includes(event.category)
+      );
+
+      setRecommendedEvents(filtered);
+    } catch (err) {
+      console.log("RECOMMENDATION ERROR:", err);
+    }
+  };
 
   // Fetch user profile from backend
   useEffect(() => {
@@ -89,6 +113,7 @@ export default function AccountScreen({ navigation }) {
 
           // Initialize interests from backend response
           setSelectedInterests(data.interests ?? []);
+          fetchRecommendedEvents(data.interests ?? []);
         } else {
           console.error('Failed to fetch profile:', data.error);
         }
@@ -141,6 +166,18 @@ export default function AccountScreen({ navigation }) {
       }
 
       if (!response.ok) {
+        console.error("Server error:", data);
+      }
+      if (response.ok) {
+      //UPDATE PROFILE STATE
+        setProfile((prev) => ({
+          ...prev,
+          interests: selectedInterests,
+        }));
+
+        //REFRESH RECOMMENDATIONS IN REAL TIME
+        fetchRecommendedEvents(selectedInterests);
+      } else {
         console.error("Server error:", data);
       }
 
@@ -276,7 +313,39 @@ export default function AccountScreen({ navigation }) {
             )}
           </View>
         </View>
+        {/* EVENTS YOU MAY LIKE */}
+        <View style={styles.recommendedSection}>
+          <Text style={styles.recommendedTitle}>
+            Events You May Like
+          </Text>
 
+          {recommendedEvents.length === 0 ? (
+            <Text style={styles.emptyText}>
+              No recommendations yet
+            </Text>
+          ) : (
+            recommendedEvents.slice(0, 5).map((event) => (
+              <TouchableOpacity key={event.id} style={styles.recommendedCard}>
+
+                <View style={styles.cardContent}>
+                  <Text style={styles.eventTitle}>
+                    {event.title}
+                  </Text>
+
+                  <Text style={styles.eventMeta}>
+                    {event.category} • {event.location}
+                  </Text>
+                </View>
+
+                <View style={styles.slashContainer}>
+                  <View style={styles.slash} />
+                  <View style={styles.slash} />
+                </View>
+
+              </TouchableOpacity>
+            ))
+          )}
+        </View>
         {/* Badges */}
         <View style={styles.badgesSection}>
           <Text style={styles.badgesLabel}>BADGES EARNED</Text>
@@ -378,4 +447,70 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   badgeLabel: { fontSize: 11, textAlign: 'center' },
+
+  recommendedSection: {
+    backgroundColor: '#fff',
+    padding: 18,
+    marginTop: 12,
+    borderRadius: 14,
+    marginHorizontal: 12,
+    marginBottom: 10,
+  },
+
+  recommendedTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    marginBottom: 12,
+    color: '#444',
+    letterSpacing: 0.8,
+  },
+
+  recommendedCard: {
+    backgroundColor: '#F6F8FF',
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: TAMUK_BLUE,
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    zIndex: 2,
+  },
+
+  cardContent: {
+    flex: 1,
+  },
+
+  eventTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#222',
+  },
+
+  eventMeta: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
+
+  emptyText: {
+    color: '#999',
+    fontSize: 12,
+    fontStyle: 'italic',
+  },
+
+  slashContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginRight: 12,
+    gap: 8,
+  },
+  slash: {
+    width: 8,
+    height: 30,
+    backgroundColor: '#FFB81C',
+    transform: [{ rotate: '45deg' }],
+    borderRadius: 3,
+    marginVertical: 2,
+  },
 });
