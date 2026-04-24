@@ -209,14 +209,18 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: "#fff",
     fontSize: 32,
-    fontWeight: "600",
+    fontWeight: "500",
     textAlign: "center",
   },
   headerSubtitle: {
-    color: "#FFB81C",
+    color: "#0202df",
     fontSize: 16,
     marginTop: 6,
+    justifyContent: "center",
+    alignItems: "center",
     textAlign: "center",
+    backgroundColor:"#FFB81C",
+    borderRadius: 20,
   },
   calendarCard: {
     backgroundColor: "#fff",
@@ -247,6 +251,10 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#0202df",
     marginBottom: 16,
+    backgroundColor: "#FFB81C",
+    padding:5,
+    borderRadius: 10,
+    textAlign: "center"
   },
   noEvents: {
     fontSize: 16,
@@ -261,6 +269,21 @@ const styles = StyleSheet.create({
   },
   eventAccent: {
     width: 8,
-    backgroundColor: "#FFB81C",
-  }
-})
+    backgroundColor: "#0202df",
+  },
+  eventContent: {
+    flex: 1,
+    padding: 16,
+  },
+  eventName: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1F2937",
+    marginBottom: 8,
+  },
+  eventText: {
+    fontSize: 15,
+    color: "#4B5563",
+    marginBottom: 2,
+  },
+});

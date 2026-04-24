@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  badgeLabel: { fontSize: 11, textAlign: 'center' },
+  badgeLabel: { fontSize: 11, textAlign: 'center' }, 
 
   recommendedSection: {
     backgroundColor: '#fff',
