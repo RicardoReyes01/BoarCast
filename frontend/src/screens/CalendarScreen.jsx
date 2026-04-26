@@ -105,7 +105,7 @@ export default function CalendarScreen() {
             onDayPress={(day) => setSelectedDate(day.dateString)}
             markedDates={markedDates}
             theme={{
-              arrowColor: "#0202df",
+              arrowColor: "#FFB81C",
               monthTextColor: "#0202df",
               textDayHeaderFontWeight: "700",
               textDayHeaderFontSize: 18,
@@ -122,7 +122,7 @@ export default function CalendarScreen() {
 
         <View style={styles.eventsCard}>
           <Text style={styles.eventsTitle}>
-            Events for {formatPrettyDate(selectedDate)}
+            Events on {formatPrettyDate(selectedDate)}
           </Text>
 
           {selectedEvents.length === 0 ? (
@@ -212,19 +212,20 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: "#fff",
-    fontSize: 32,
-    fontWeight: "500",
+    fontSize: 28,
+    fontWeight: "800",
     textAlign: "center",
   },
   headerSubtitle: {
-    color: "#0202df",
-    fontSize: 16,
+    color: "black",
+    fontSize: 15,
     marginTop: 6,
     justifyContent: "center",
     alignItems: "center",
     textAlign: "center",
     backgroundColor:"#FFB81C",
     borderRadius: 20,
+    paddingVertical: 5,
   },
   calendarCard: {
     backgroundColor: "#fff",

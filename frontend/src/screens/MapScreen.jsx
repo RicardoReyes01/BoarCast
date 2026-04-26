@@ -1,84 +1,100 @@
-// React hooks for state + lifecycle
+// =============================
+// React + React Native Imports
+// =============================
 import React, { useEffect, useState } from 'react';
-
-// React Native UI components
 import {
   View,
   StyleSheet,
-  Modal,
   Text,
-  TextInput,
   TouchableOpacity,
   Alert,
+  Modal,
+  ScrollView,
 } from 'react-native';
 
-// Map components
+// =============================
+// Map + Storage Imports
+// =============================
 import MapView, { Marker } from 'react-native-maps';
-
-// Local phone storage so pins stay saved
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Key name used to save/load pins from storage
+// =============================
+// Auth Context
+// =============================
+import { useAuth } from '../context/AuthContext';
+
+// =============================
+// Constants
+// =============================
 const STORAGE_KEY = 'boarcast_pins';
+const SERVER_URL = "https://boarcast-production.up.railway.app";
 
-/*
-  Main Map Screen
-  This screen lets users:
-  - tap the map to create a pin
-  - name the pin
-  - edit pins
-  - delete pins
-  - save pins locally
-*/
-export default function MapScreen() {
-  /*
-    pins = array of all saved map pins
-    Example:
-    [
-      {
-        id: "123",
-        coordinate: { latitude: 27.5, longitude: -97.8 },
-        title: "Danger Area"
-      }
-    ]
-  */
+// =============================
+// Main Component
+// =============================
+export default function MapScreen({ navigation }) {
+  // =============================
+  // State
+  // =============================
   const [pins, setPins] = useState([]);
-
-  // Stores the map coordinates when user taps
   const [selectedCoord, setSelectedCoord] = useState(null);
+  const [profile, setProfile] = useState(null);
 
-  // Stores the text typed into the pin name input
-  const [pinName, setPinName] = useState('');
-
-  // Controls whether the naming popup is open
+  const [selectedPin, setSelectedPin] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // If editing an existing pin, this stores that pin's ID
-  const [editingPinId, setEditingPinId] = useState(null);
+  const authContext = useAuth();
 
-  /*
-    Runs once when the screen loads
-    Loads previously saved pins from phone storage
-  */
+  // Role check
+  const isOrgLeader = profile?.role === 'org_leader';
+
+  // =============================
+  // Load pins from local storage
+  // =============================
   useEffect(() => {
     loadPins();
   }, []);
 
-  /*
-    Runs every time pins change
-    Automatically saves the updated pin list
-  */
+  // =============================
+  // Save pins when updated
+  // =============================
   useEffect(() => {
     savePins();
   }, [pins]);
 
-  /*
-    Load saved pins from AsyncStorage
-  */
+  // =============================
+  // Fetch user profile
+  // =============================
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = await authContext.getToken();
+
+        const res = await fetch(`${SERVER_URL}/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          setProfile(data);
+        }
+      } catch (err) {
+        console.log('Profile fetch error:', err);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  // =============================
+  // Load Pins
+  // =============================
   const loadPins = async () => {
     try {
       const savedPins = await AsyncStorage.getItem(STORAGE_KEY);
-
       if (savedPins) {
         setPins(JSON.parse(savedPins));
       }
@@ -87,10 +103,9 @@ export default function MapScreen() {
     }
   };
 
-  /*
-    Save current pins to AsyncStorage
-    JSON.stringify turns the array into text for storage
-  */
+  // =============================
+  // Save Pins
+  // =============================
   const savePins = async () => {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(pins));
@@ -99,93 +114,55 @@ export default function MapScreen() {
     }
   };
 
-  /*
-    Runs when user taps on the map
-    - gets tapped coordinates
-    - opens the naming popup
-  */
+  // =============================
+  // Handle Map Tap (Org Leaders Only)
+  // =============================
   const handleMapPress = (event) => {
+    if (!isOrgLeader) return;
+
     const coordinate = event.nativeEvent.coordinate;
-
     setSelectedCoord(coordinate);
-    setPinName('');
-    setEditingPinId(null);
+
+    setSelectedPin({ coordinate });
     setModalVisible(true);
   };
 
-  /*
-    Closes the naming/edit popup
-    Also clears temporary state
-  */
-  const closeModal = () => {
-    setModalVisible(false);
-    setSelectedCoord(null);
-    setPinName('');
-    setEditingPinId(null);
-  };
-
-  /*
-    Save a pin
-    If editingPinId exists:
-      -> update existing pin
-    Otherwise:
-      -> create a brand new pin
-  */
-  const savePin = () => {
-    if (!selectedCoord) return;
-
-    const trimmedName = pinName.trim() || 'Unnamed Pin';
-
-    // Editing an existing pin
-    if (editingPinId) {
-      setPins((prevPins) =>
-        prevPins.map((pin) =>
-          pin.id === editingPinId ? { ...pin, title: trimmedName } : pin
-        )
-      );
-    } else {
-      // Creating a brand new pin
-      const newPin = {
-        id: Date.now().toString(),
-        coordinate: selectedCoord,
-        title: trimmedName,
-      };
-
-      setPins((prevPins) => [...prevPins, newPin]);
-    }
-
-    closeModal();
-  };
-
-  /*
-    Opens modal to edit an existing pin
-  */
-  const editPin = (pin) => {
-    setSelectedCoord(pin.coordinate);
-    setPinName(pin.title);
-    setEditingPinId(pin.id);
+  // =============================
+  // Open Event (Non-Org Users)
+  // =============================
+  const openEvent = (pin) => {
+    setSelectedPin(pin);
     setModalVisible(true);
   };
 
-  /*
-    Deletes a pin after confirmation popup
-  */
+  // =============================
+  // Delete Pin (Future use)
+  // =============================
   const deletePin = (pinId) => {
-    Alert.alert('Delete Pin', 'Are you sure you want to delete this pin?', [
+    Alert.alert('Delete Pin', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
         style: 'destructive',
         onPress: () => {
-          setPins((prevPins) => prevPins.filter((pin) => pin.id !== pinId));
+          setPins((prev) => prev.filter((p) => p.id !== pinId));
         },
       },
     ]);
   };
 
+  // =============================
+  // Render
+  // =============================
   return (
     <View style={styles.container}>
-      {/* MAIN MAP */}
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Campus Map</Text>
+      </View>
+
+      {/* Map */}
       <MapView
         style={styles.map}
         initialRegion={{
@@ -194,196 +171,279 @@ export default function MapScreen() {
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         }}
-        onPress={handleMapPress}
+        onPress={isOrgLeader ? handleMapPress : undefined}
       >
-        {/* Draw every saved pin as a marker */}
         {pins.map((pin) => (
           <Marker
             key={pin.id}
             coordinate={pin.coordinate}
-            title={pin.title}
-            description="Tap this marker to edit"
-            onCalloutPress={() => editPin(pin)}
-          />
+            onPress={() => {
+              setSelectedPin(pin);
+              setModalVisible(true);
+            }}
+          >
+            <View style={styles.marker} />
+          </Marker>
         ))}
       </MapView>
 
-      {/* Small help box at the top */}
+      {/* Help Text */}
       <View style={styles.helpBox}>
-        <Text style={styles.helpText}>Tap anywhere on the map to add a pin.</Text>
+        <Text style={styles.helpText}>
+          {isOrgLeader
+            ? 'Tap anywhere to manage events.'
+            : 'Tap a pin to view event details.'}
+        </Text>
       </View>
 
-      {/* Recent pins shown at bottom */}
-      <View style={styles.pinListOverlay}>
-        {pins.slice(-3).map((pin) => (
-          <View key={pin.id} style={styles.pinCard}>
-            <Text style={styles.pinTitle}>{pin.title}</Text>
-
-            <View style={styles.pinActions}>
-              {/* Edit button */}
-              <TouchableOpacity
-                style={styles.editButton}
-                onPress={() => editPin(pin)}
-              >
-                <Text style={styles.buttonText}>Edit</Text>
-              </TouchableOpacity>
-
-              {/* Delete button */}
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => deletePin(pin.id)}
-              >
-                <Text style={styles.buttonText}>Delete</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ))}
+      {/* Bottom Button */}
+      <View style={styles.seeAllContainer}>
+        <TouchableOpacity
+          style={styles.seeAllButton}
+          onPress={() => {
+            setSelectedPin(null); // show all events
+            setModalVisible(true);
+          }}
+        >
+          <Text style={styles.seeAllText}>
+            {isOrgLeader ? 'Manage Events' : 'View Events'}
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Popup modal for naming/editing a pin */}
+      {/* =============================
+          MODAL POPUP
+      ============================= */}
       <Modal
         visible={modalVisible}
         transparent
         animationType="slide"
-        onRequestClose={closeModal}
+        onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>
-              {editingPinId ? 'Edit Pin' : 'Name This Pin'}
-            </Text>
 
-            {/* Input field for pin name */}
-            <TextInput
-              style={styles.input}
-              placeholder="Enter pin name"
-              value={pinName}
-              onChangeText={setPinName}
-            />
-
-            <View style={styles.buttonRow}>
-              {/* Cancel button */}
-              <TouchableOpacity style={styles.cancelButton} onPress={closeModal}>
-                <Text style={styles.buttonText}>Cancel</Text>
-              </TouchableOpacity>
-
-              {/* Save / Update button */}
-              <TouchableOpacity style={styles.saveButton} onPress={savePin}>
-                <Text style={styles.buttonText}>
-                  {editingPinId ? 'Update' : 'Save'}
+            {selectedPin ? (
+              <>
+                <Text style={styles.modalTitle}>
+                  {selectedPin.title || 'Event'}
                 </Text>
-              </TouchableOpacity>
-            </View>
+
+                {!isOrgLeader ? (
+                  <>
+                    <Text style={{ marginBottom: 15 }}>
+                      Event details will go here.
+                    </Text>
+
+                    <TouchableOpacity
+                      style={styles.primaryButton}
+                      onPress={() => setModalVisible(false)}
+                    >
+                      <Text style={styles.buttonText}>Close</Text>
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  <>
+                    <TouchableOpacity
+                      style={styles.primaryButton}
+                      onPress={() => {
+                        setModalVisible(false);
+                        navigation.navigate('Account', {
+                          screen: 'EventManagement',
+                          params: { pin: selectedPin },
+                        });
+                      }}
+                    >
+                      <Text style={styles.buttonText}>Manage Event</Text>
+                    </TouchableOpacity>
+
+                    {selectedPin?.id && (
+                      <TouchableOpacity
+                        style={styles.deleteButton}
+                        onPress={() => {
+                          deletePin(selectedPin.id);
+                          setModalVisible(false);
+                        }}
+                      >
+                        <Text style={styles.buttonText}>Delete Pin</Text>
+                      </TouchableOpacity>
+                    )}
+
+                    <TouchableOpacity
+                      style={styles.cancelButton}
+                      onPress={() => setModalVisible(false)}
+                    >
+                      <Text style={styles.buttonText}>Cancel</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <Text style={styles.modalTitle}>All Events</Text>
+
+                <ScrollView style={{ maxHeight: 300 }}>
+                  {pins.length === 0 ? (
+                    <Text>No events yet.</Text>
+                  ) : (
+                    pins.map((pin) => (
+                      <TouchableOpacity
+                        key={pin.id}
+                        style={styles.pinItem}
+                        onPress={() => setSelectedPin(pin)}
+                      >
+                        <Text style={styles.pinItemText}>
+                          {pin.title || 'Unnamed Event'}
+                        </Text>
+                      </TouchableOpacity>
+                    ))
+                  )}
+                </ScrollView>
+
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Text style={styles.buttonText}>Close</Text>
+                </TouchableOpacity>
+              </>
+            )}
+
           </View>
         </View>
       </Modal>
+
     </View>
   );
 }
 
-/*
-  Styling for the map screen UI
-*/
+// =============================
+// Styles
+// =============================
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  container: { flex: 1 },
+
+  header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    paddingTop: 60,
+    paddingBottom: 16,
+    backgroundColor: '#0202df',
+    alignItems: 'center',
+    zIndex: 10,
+    borderRadius: 15,
   },
-  map: {
-    flex: 1,
+
+  headerTitle: {
+    color: '#fff',
+    fontSize: 28,
+    fontWeight: '800',
   },
+
+  map: { flex: 1 },
+
+  marker: {
+    backgroundColor: '#0202df',
+    padding: 6,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#FFB81C',
+  },
+
   helpBox: {
     position: 'absolute',
-    top: 50,
+    top: 140,
     left: 12,
     right: 12,
     backgroundColor: 'rgba(255,255,255,0.95)',
     padding: 10,
     borderRadius: 10,
   },
+
   helpText: {
     textAlign: 'center',
     fontWeight: '600',
   },
-  pinListOverlay: {
+
+  seeAllContainer: {
     position: 'absolute',
-    bottom: 20,
-    left: 10,
-    right: 10,
+    bottom: 80,
+    left: 20,
+    right: 20,
+    alignItems: 'center',
   },
-  pinCard: {
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    borderRadius: 10,
-    padding: 10,
-    marginTop: 8,
+
+  seeAllButton: {
+    backgroundColor: '#0202df',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    elevation: 5,
   },
-  pinTitle: {
+
+  seeAllText: {
+    color: '#fff',
     fontWeight: '700',
     fontSize: 14,
-    marginBottom: 8,
   },
-  pinActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  editButton: {
-    backgroundColor: '#2563EB',
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 8,
-  },
-  deleteButton: {
-    backgroundColor: '#DC2626',
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 8,
-  },
+
   modalOverlay: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
+
   modalBox: {
-    width: '82%',
     backgroundColor: '#fff',
-    borderRadius: 14,
     padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
+
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    marginBottom: 12,
+    marginBottom: 10,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#D9D9D9',
+
+  primaryButton: {
+    backgroundColor: '#0202df',
+    padding: 12,
     borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 16,
-    fontSize: 16,
+    marginBottom: 10,
+    alignItems: 'center',
   },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: 10,
+
+  deleteButton: {
+    backgroundColor: '#DC2626',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 10,
+    alignItems: 'center',
   },
+
   cancelButton: {
-    flex: 1,
     backgroundColor: '#999',
-    paddingVertical: 12,
+    padding: 12,
     borderRadius: 10,
     alignItems: 'center',
   },
-  saveButton: {
-    flex: 1,
-    backgroundColor: '#007AFF',
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
+
   buttonText: {
     color: '#fff',
     fontWeight: '700',
   },
-});
 
+  pinItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+
+  pinItemText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});

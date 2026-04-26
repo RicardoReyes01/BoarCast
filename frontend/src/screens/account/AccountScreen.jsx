@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { FontAwesome6 } from '@expo/vector-icons';
-
+import { StatusBar } from 'react-native';
 import AccountMenu from '../../components/AccountMenu';
 import { useAuth } from '../../context/AuthContext';
 import { collection, getDocs } from "firebase/firestore";
@@ -200,8 +200,8 @@ export default function AccountScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="light-content" backgroundColor={TAMUK_BLUE} />
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.username}>{profile?.email ?? ''}</Text>
@@ -383,8 +383,8 @@ export default function AccountScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f5f5f5' },
-  scroll: { flex: 1 },
+  safe: { flex: 1, backgroundColor: TAMUK_BLUE },
+  scroll: { flex: 1, backgroundColor: '#f5f5f5'},
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  username: { color: '#fff', fontSize: 18, fontWeight: '500' },
+  username: { color: '#fff', fontSize: 20, fontWeight: '700', },
   profileBand: {
     backgroundColor: TAMUK_GOLD,
     paddingHorizontal: 20,
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
   },
   profileInfo: { flex: 1, gap: 3 },
   fullName: { fontSize: 16, fontWeight: '600', color: TAMUK_BLUE },
-  majorText: { fontSize: 13 },
+  majorText: { fontSize: 13, marginBottom: 3, fontWeight: 600 },
   eventsBadge: {
     alignSelf: 'flex-start',
     backgroundColor: TAMUK_BLUE,
@@ -435,7 +435,17 @@ const styles = StyleSheet.create({
   tagsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   tag: { borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
   tagText: { fontSize: 12, fontWeight: '500' },
-  badgesSection: { backgroundColor: '#fff', padding: 20, marginHorizontal: 12, borderRadius: 14, marginBottom: 12},
+  badgesSection: { 
+    backgroundColor: '#fff', 
+    padding: 20, 
+    marginHorizontal: 12, 
+    borderRadius: 14, 
+    marginBottom: 14, 
+    shadowOffset: { width: 0, height: 3 },
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+  },
   badgesLabel: { fontSize: 12, color: '#444', marginBottom: 12, fontWeight: 800, textAlign: "center"},
   badgesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   badgeCard: { width: '47%', borderRadius: 14, padding: 14, alignItems: 'center' },
@@ -451,10 +461,14 @@ const styles = StyleSheet.create({
   recommendedSection: {
     backgroundColor: '#fff',
     padding: 18,
-    marginTop: 12,
+    marginTop: 14,
     borderRadius: 14,
     marginHorizontal: 12,
-    marginBottom: 12,
+    marginBottom: 14,
+    shadowOffset: { width: 0, height: 3 },
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
   },
 
   recommendedTitle: {
