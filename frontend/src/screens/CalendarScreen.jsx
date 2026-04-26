@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, SafeAreaView } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../FirebaseFrontend";
+import { getAuth } from "firebase/auth";
 
 LocaleConfig.locales.custom = {
   monthNames: [
@@ -51,6 +52,9 @@ LocaleConfig.defaultLocale = "custom";
 export default function CalendarScreen() {
   const [events, setEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState(getToday());
+
+  const auth = getAuth();
+  const userId = auth.currentUser?.uid;
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "events"), (snapshot) => {
@@ -128,28 +132,44 @@ export default function CalendarScreen() {
           {selectedEvents.length === 0 ? (
             <Text style={styles.noEvents}>No events for this day.</Text>
           ) : (
-            selectedEvents.map((event) => (
-              <View key={event.id} style={styles.eventItem}>
-                <View style={styles.eventAccent} />
-                <View style={styles.eventContent}>
-                  <Text style={styles.eventName}>
-                    {event.title || "Untitled Event"}
-                  </Text>
+            selectedEvents.map((event) => {
 
-                  {event.time ? (
-                    <Text style={styles.eventText}>Time: {event.time}</Text>
-                  ) : null}
+              const isRSVP = event.rsvps?.includes(userId);
 
-                  {event.location ? (
-                    <Text style={styles.eventText}>Location: {event.location}</Text>
-                  ) : null}
+              return (
+                <View key={event.id} style={styles.eventItem}>
+                  <View style={styles.eventAccent} />
 
-                  {event.organization ? (
-                    <Text style={styles.eventText}>Org: {event.organization}</Text>
-                  ) : null}
+                  <View style={styles.eventContent}>
+
+                    <View style={styles.titleRow}>
+                      <Text style={styles.eventName}>
+                        {event.title || "Untitled Event"}
+                      </Text>
+
+                      {isRSVP ? (
+                        <View style={styles.rsvpTag}>
+                          <Text style={styles.rsvpTagText}>RSVP’d</Text>
+                        </View>
+                      ) : null}
+                    </View>
+
+                    {event.time ? (
+                      <Text style={styles.eventText}>Time: {event.time}</Text>
+                    ) : null}
+
+                    {event.location ? (
+                      <Text style={styles.eventText}>Location: {event.location}</Text>
+                    ) : null}
+
+                    {event.organization ? (
+                      <Text style={styles.eventText}>Org: {event.organization}</Text>
+                    ) : null}
+
+                  </View>
                 </View>
-              </View>
-            ))
+              );
+            })
           )}
         </View>
       </ScrollView>
@@ -290,5 +310,24 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#4B5563",
     marginBottom: 2,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  rsvpTag: {
+    marginLeft: 8,
+    marginBottom: 9,
+    backgroundColor: '#1A1A1A',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 12,
+  },
+
+  rsvpTagText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '700',
   },
 });

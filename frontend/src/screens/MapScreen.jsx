@@ -10,6 +10,7 @@ import {
   Alert,
   Modal,
   ScrollView,
+  TextInput,
 } from 'react-native';
 
 // =============================
@@ -33,37 +34,38 @@ const SERVER_URL = "https://boarcast-production.up.railway.app";
 // Main Component
 // =============================
 export default function MapScreen({ navigation }) {
+
   // =============================
   // State
   // =============================
   const [pins, setPins] = useState([]);
-  const [selectedCoord, setSelectedCoord] = useState(null);
   const [profile, setProfile] = useState(null);
 
-  const [selectedPin, setSelectedPin] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [modalMode, setModalMode] = useState(null);
+  // 'create' | 'view' | 'edit'
+
+  const [selectedPin, setSelectedPin] = useState(null);
+  const [tempTitle, setTempTitle] = useState('');
+  const [tempCoord, setTempCoord] = useState(null);
 
   const authContext = useAuth();
 
-  // Role check
   const isOrgLeader = profile?.role === 'org_leader';
 
   // =============================
-  // Load pins from local storage
+  // Load pins
   // =============================
   useEffect(() => {
     loadPins();
   }, []);
 
-  // =============================
-  // Save pins when updated
-  // =============================
   useEffect(() => {
     savePins();
   }, [pins]);
 
   // =============================
-  // Fetch user profile
+  // Fetch profile
   // =============================
   useEffect(() => {
     const fetchProfile = async () => {
@@ -71,16 +73,13 @@ export default function MapScreen({ navigation }) {
         const token = await authContext.getToken();
 
         const res = await fetch(`${SERVER_URL}/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         const data = await res.json();
 
-        if (res.ok) {
-          setProfile(data);
-        }
+        if (res.ok) setProfile(data);
+
       } catch (err) {
         console.log('Profile fetch error:', err);
       }
@@ -90,62 +89,94 @@ export default function MapScreen({ navigation }) {
   }, []);
 
   // =============================
-  // Load Pins
+  // Storage
   // =============================
   const loadPins = async () => {
     try {
-      const savedPins = await AsyncStorage.getItem(STORAGE_KEY);
-      if (savedPins) {
-        setPins(JSON.parse(savedPins));
-      }
-    } catch (error) {
-      console.log('Error loading pins:', error);
+      const saved = await AsyncStorage.getItem(STORAGE_KEY);
+      if (saved) setPins(JSON.parse(saved));
+    } catch (err) {
+      console.log(err);
     }
   };
 
-  // =============================
-  // Save Pins
-  // =============================
   const savePins = async () => {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(pins));
-    } catch (error) {
-      console.log('Error saving pins:', error);
+    } catch (err) {
+      console.log(err);
     }
   };
 
   // =============================
-  // Handle Map Tap (Org Leaders Only)
+  // Open Create Modal (Map Tap)
   // =============================
   const handleMapPress = (event) => {
     if (!isOrgLeader) return;
 
-    const coordinate = event.nativeEvent.coordinate;
-    setSelectedCoord(coordinate);
+    const coord = event.nativeEvent.coordinate;
 
-    setSelectedPin({ coordinate });
+    setSelectedPin(null);
+    setTempCoord(coord);
+    setTempTitle('');
+
+    setModalMode('create');
     setModalVisible(true);
   };
 
   // =============================
-  // Open Event (Non-Org Users)
+  // Open View Modal (Pin Tap)
   // =============================
-  const openEvent = (pin) => {
+  const openPin = (pin) => {
     setSelectedPin(pin);
+    setTempTitle(pin.title || '');
+    setTempCoord(pin.coordinate);
+
+    setModalMode('view');
     setModalVisible(true);
   };
 
   // =============================
-  // Delete Pin (Future use)
+  // Create Pin
   // =============================
-  const deletePin = (pinId) => {
+  const createPin = () => {
+    const newPin = {
+      id: Date.now().toString(),
+      title: tempTitle || 'Untitled Event',
+      coordinate: tempCoord,
+    };
+
+    setPins((prev) => [...prev, newPin]);
+    setModalVisible(false);
+  };
+
+  // =============================
+  // Update Pin
+  // =============================
+  const updatePin = () => {
+    setPins((prev) =>
+      prev.map((p) =>
+        p.id === selectedPin.id
+          ? { ...p, title: tempTitle }
+          : p
+      )
+    );
+
+    setModalVisible(false);
+  };
+
+  // =============================
+  // Delete Pin
+  // =============================
+  const deletePin = (id) => {
     Alert.alert('Delete Pin', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
         style: 'destructive',
         onPress: () => {
-          setPins((prev) => prev.filter((p) => p.id !== pinId));
+          setPins((prev) => prev.filter((p) => p.id !== id));
+          setModalVisible(false);
         },
       },
     ]);
@@ -156,10 +187,11 @@ export default function MapScreen({ navigation }) {
   // =============================
   return (
     <View style={styles.container}>
-      
+
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Campus Map</Text>
+        <Text style={styles.subHeaderTitle}>Campus Map</Text>
       </View>
 
       {/* Map */}
@@ -171,16 +203,13 @@ export default function MapScreen({ navigation }) {
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         }}
-        onPress={isOrgLeader ? handleMapPress : undefined}
+        onPress={handleMapPress}
       >
         {pins.map((pin) => (
           <Marker
             key={pin.id}
             coordinate={pin.coordinate}
-            onPress={() => {
-              setSelectedPin(pin);
-              setModalVisible(true);
-            }}
+            onPress={() => openPin(pin)}
           >
             <View style={styles.marker} />
           </Marker>
@@ -191,17 +220,20 @@ export default function MapScreen({ navigation }) {
       <View style={styles.helpBox}>
         <Text style={styles.helpText}>
           {isOrgLeader
-            ? 'Tap anywhere to manage events.'
+            ? 'Tap map to create events.'
             : 'Tap a pin to view event details.'}
         </Text>
       </View>
 
-      {/* Bottom Button */}
+      {/* =============================
+          BOTTOM BUTTON (RESTORED)
+      ============================= */}
       <View style={styles.seeAllContainer}>
         <TouchableOpacity
           style={styles.seeAllButton}
           onPress={() => {
-            setSelectedPin(null); // show all events
+            setSelectedPin(null);
+            setModalMode('view');
             setModalVisible(true);
           }}
         >
@@ -212,7 +244,7 @@ export default function MapScreen({ navigation }) {
       </View>
 
       {/* =============================
-          MODAL POPUP
+          MODAL
       ============================= */}
       <Modal
         visible={modalVisible}
@@ -221,90 +253,137 @@ export default function MapScreen({ navigation }) {
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
+         {/* TAP OUTSIDE AREA */}
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={() => setModalVisible(false)}
+            animationType="slide"
+          />
           <View style={styles.modalBox}>
 
-            {selectedPin ? (
+            {/* CREATE MODE */}
+            {modalMode === 'create' && (
               <>
-                <Text style={styles.modalTitle}>
-                  {selectedPin.title || 'Event'}
-                </Text>
+                <Text style={styles.modalTitle}>Create Event</Text>
 
-                {!isOrgLeader ? (
-                  <>
-                    <Text style={{ marginBottom: 15 }}>
-                      Event details will go here.
-                    </Text>
+                <TextInput
+                  placeholder="Event title"
+                  value={tempTitle}
+                  onChangeText={setTempTitle}
+                  style={styles.input}
+                />
 
-                    <TouchableOpacity
-                      style={styles.primaryButton}
-                      onPress={() => setModalVisible(false)}
-                    >
-                      <Text style={styles.buttonText}>Close</Text>
-                    </TouchableOpacity>
-                  </>
-                ) : (
-                  <>
-                    <TouchableOpacity
-                      style={styles.primaryButton}
-                      onPress={() => {
-                        setModalVisible(false);
-                        navigation.navigate('Account', {
-                          screen: 'EventManagement',
-                          params: { pin: selectedPin },
-                        });
-                      }}
-                    >
-                      <Text style={styles.buttonText}>Manage Event</Text>
-                    </TouchableOpacity>
-
-                    {selectedPin?.id && (
-                      <TouchableOpacity
-                        style={styles.deleteButton}
-                        onPress={() => {
-                          deletePin(selectedPin.id);
-                          setModalVisible(false);
-                        }}
-                      >
-                        <Text style={styles.buttonText}>Delete Pin</Text>
-                      </TouchableOpacity>
-                    )}
-
-                    <TouchableOpacity
-                      style={styles.cancelButton}
-                      onPress={() => setModalVisible(false)}
-                    >
-                      <Text style={styles.buttonText}>Cancel</Text>
-                    </TouchableOpacity>
-                  </>
-                )}
-              </>
-            ) : (
-              <>
-                <Text style={styles.modalTitle}>All Events</Text>
-
-                <ScrollView style={{ maxHeight: 300 }}>
-                  {pins.length === 0 ? (
-                    <Text>No events yet.</Text>
-                  ) : (
-                    pins.map((pin) => (
-                      <TouchableOpacity
-                        key={pin.id}
-                        style={styles.pinItem}
-                        onPress={() => setSelectedPin(pin)}
-                      >
-                        <Text style={styles.pinItemText}>
-                          {pin.title || 'Unnamed Event'}
-                        </Text>
-                      </TouchableOpacity>
-                    ))
-                  )}
-                </ScrollView>
+                <TouchableOpacity
+                  style={styles.primaryButton}
+                  onPress={createPin}
+                >
+                  <Text style={styles.buttonText}>Save</Text>
+                </TouchableOpacity>
 
                 <TouchableOpacity
                   style={styles.cancelButton}
                   onPress={() => setModalVisible(false)}
                 >
-                  <Text style={styles.buttonText}>Close</Text>
+                  <Text style={styles.buttonText}>Cancel</Text>
+                </TouchableOpacity>
+              </>
+            )}
+
+            {/* VIEW MODE */}
+            {modalMode === 'view' && (
+              <>
+                {selectedPin ? (
+                  <>
+                    <Text style={styles.modalTitle}>
+                      {selectedPin.title}
+                    </Text>
+
+                    <Text style={{ marginBottom: 20 }}>
+                      Event details placeholder
+                    </Text>
+
+                    {isOrgLeader ? (
+                      <>
+                        <TouchableOpacity
+                          style={styles.primaryButton}
+                          onPress={() => setModalMode('edit')}
+                        >
+                          <Text style={styles.buttonText}>Edit</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          style={styles.deleteButton}
+                          onPress={() => deletePin(selectedPin.id)}
+                        >
+                          <Text style={styles.buttonText}>Delete</Text>
+                        </TouchableOpacity>
+                      </>
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.primaryButton}
+                        onPress={() => setModalVisible(false)}
+                      >
+                        <Text style={styles.buttonText}>Close</Text>
+                      </TouchableOpacity>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.modalTitle}>All Events</Text>
+
+                    <ScrollView style={{ maxHeight: 300 }}>
+                      {pins.length === 0 ? (
+                        <Text>No events yet.</Text>
+                      ) : (
+                        pins.map((pin) => (
+                          <TouchableOpacity
+                            key={pin.id}
+                            style={styles.pinItem}
+                            onPress={() => openPin(pin)}
+                          >
+                            <Text style={styles.pinItemText}>
+                              {pin.title || 'Unnamed Event'}
+                            </Text>
+                          </TouchableOpacity>
+                        ))
+                      )}
+                    </ScrollView>
+
+                    <TouchableOpacity
+                      style={styles.cancelButton}
+                      onPress={() => setModalVisible(false)}
+                    >
+                      <Text style={styles.buttonText}>Close</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </>
+            )}
+
+            {/* EDIT MODE */}
+            {modalMode === 'edit' && selectedPin && (
+              <>
+                <Text style={styles.modalTitle}>Edit Event</Text>
+
+                <TextInput
+                  value={tempTitle}
+                  onChangeText={setTempTitle}
+                  style={styles.input}
+                />
+
+                <TouchableOpacity
+                  style={styles.primaryButton}
+                  onPress={updatePin}
+                >
+                  <Text style={styles.buttonText}>Update</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => setModalMode('view')}
+                >
+                  <Text style={styles.buttonText}>Back</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -340,6 +419,17 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 28,
     fontWeight: '800',
+    marginTop: 5,
+  },
+
+  subHeaderTitle: {
+    color: '#FFB81C',
+    fontSize: 8,
+    backgroundColor: '#FFB81C',
+    width: 250,
+    textAlign: 'center',
+    borderRadius: 20,
+    marginTop: 3,
   },
 
   map: { flex: 1 },
@@ -373,6 +463,8 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     alignItems: 'center',
+    zIndex: 999,
+    elevation: 10,
   },
 
   seeAllButton: {
@@ -406,6 +498,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 10,
+  },
+
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 15,
   },
 
   primaryButton: {
