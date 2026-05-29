@@ -1,14 +1,36 @@
-Okay so there's two things:
+# Mobile App Setup
 
-1. run npm install to auto generate the node modules needed to run the program.
+## Install Expo Go
 
-2. Since right now this runs locally, you will need to go to src/screens/RegisterScreen.jsx and
-src/screens/AccountScreen.jsx to change the URL_SERVER line to your local IP address.
+Download the Expo Go app on your mobile device:
 
+* iOS: App Store
+* Android: Google Play Store
 
-After you will need to run node server.js in the backend folder on your terminal. to set up the server.
+## Install Dependencies
 
-Open up a new terminal and start the expo go as you normally would in the front end folder.
+From the root project directory, run:
 
+```bash
+npm install
+```
 
-I ai generated the comments so the code would be easier to understand. 
+## Start the Frontend
+
+Navigate to the frontend folder:
+
+```bash
+cd frontend
+```
+
+Start the Expo development server:
+
+```bash
+npx expo start
+```
+
+## Run the App
+
+1. Open the Expo Go app on your phone
+2. Scan the QR code shown in the terminal or browser
+3. The app will open on your device
